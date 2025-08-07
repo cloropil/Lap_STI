@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('laporan_kegiatans', function (Blueprint $table) {
+        Schema::create('laporan_kegiatan', function (Blueprint $table) {
             $table->id();
             $table->date('tanggal'); // untuk filter tanggal
             $table->text('kegiatan'); // isi laporan kegiatan
@@ -24,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('laporan_kegiatans');
+        Schema::dropIfExists('laporan_kegiatan');
     }
 };
