@@ -92,9 +92,9 @@
                         <td class="border px-3 py-2">{{ $tiket->formatted_durasi }}</td>
                         <td class="border px-3 py-2 text-left">{{ $tiket->stopclock ?? '-' }}</td>
                         <td class="border px-3 py-2">
-                            @if($tiket->status_tiket == 'open')
+                            @if($tiket->status_tiket == 'Proses')
                                 <span class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-1 rounded-full">Open</span>
-                            @elseif($tiket->status_tiket == 'close')
+                            @elseif($tiket->status_tiket == 'Selesai')
                                 <span class="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">Closed</span>
                             @else
                                 <span class="bg-gray-200 text-gray-800 text-xs font-semibold px-2 py-1 rounded-full">{{ $tiket->status_tiket }}</span>
