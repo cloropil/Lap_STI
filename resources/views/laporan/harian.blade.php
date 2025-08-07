@@ -76,6 +76,59 @@
                     </div>
                 </div>
             @endif
+
+                    <div class="pt-6">
+            <h2 class="text-md font-semibold mb-3">🕒 Rincian Stopclock</h2>
+
+            @if ($tiket->stopclocks && $tiket->stopclocks->count() > 0)
+                @php $totalMenit = 0; @endphp
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left border border-gray-200">
+                        <thead class="bg-gray-100 text-gray-700">
+                            <tr>
+                                <th class="px-4 py-2 border">No</th>
+                                <th class="px-4 py-2 border">Start Clock</th>
+                                <th class="px-4 py-2 border">Stop Clock</th>
+                                <th class="px-4 py-2 border">Alasan</th>
+                                <th class="px-4 py-2 border">Durasi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($tiket->stopclocks as $i => $sc)
+                                @php
+                                    $totalMenit += $sc->durasi ?? 0;
+                                    $jam = floor(($sc->durasi ?? 0) / 60);
+                                    $menit = ($sc->durasi ?? 0) % 60;
+                                @endphp
+                                <tr class="border-t">
+                                    <td class="px-4 py-2 border">{{ $i + 1 }}</td>
+                                    <td class="px-4 py-2 border">{{ \Carbon\Carbon::parse($sc->start_clock)->format('d M Y H:i') }}</td>
+                                    <td class="px-4 py-2 border">{{ \Carbon\Carbon::parse($sc->stop_clock)->format('d M Y H:i') }}</td>
+                                    <td class="px-4 py-2 border">{{ $sc->alasan ?? '-' }}</td>
+                                    <td class="px-4 py-2 border">
+                                        {{ $jam > 0 ? "$jam Jam " : '' }}{{ $menit }} Menit
+                                    </td>
+                                </tr>
+                            @endforeach
+                            @php
+                                $totalJam = floor($totalMenit / 60);
+                                $totalSisaMenit = $totalMenit % 60;
+                            @endphp
+                            <tr class="font-semibold bg-gray-100 border-t">
+                                <td colspan="4" class="text-right px-4 py-2 border">Total Stopclock</td>
+                                <td class="px-4 py-2 border">
+                                    {{ $totalJam > 0 ? "$totalJam Jam " : '' }}{{ $totalSisaMenit }} Menit
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <p class="text-gray-400 italic">Belum ada data stopclock yang tercatat.</p>
+            @endif
+        </div>
+
+
         </div>
     @empty
         <div class="text-center text-blue-600 bg-blue-50 border border-blue-200 px-6 py-10 rounded-lg shadow-sm mb-6">

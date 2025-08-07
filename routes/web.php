@@ -54,14 +54,21 @@ Route::get('/dashboard/laporan-kegiatan/partial', [LaporanKegiatanController::cl
 
     // === INPUT TIKET ===
     Route::prefix('inputtiket')->name('inputtiket.')->group(function () {
+        // Rute statis harus diletakkan di atas rute dinamis
+        Route::get('/export', [InputTiketController::class, 'export'])->name('export');
+        
+        // Rute lain yang sudah ada
         Route::get('/', [InputTiketController::class, 'index'])->name('index');
         Route::get('/create', [InputTiketController::class, 'create'])->name('create');
         Route::post('/store', [InputTiketController::class, 'store'])->name('store');
+        
+        // Rute dinamis diletakkan di bagian bawah
         Route::get('/{id}', [InputTiketController::class, 'show'])->name('show');
         Route::get('/{id}/edit', [InputTiketController::class, 'edit'])->name('edit');
         Route::put('/{id}', [InputTiketController::class, 'update'])->name('update');
         Route::delete('/{id}', [InputTiketController::class, 'destroy'])->name('destroy');
     });
+
 
     // === STOPCLOCK ===
     Route::prefix('stopclock')->name('stopclock.')->group(function () {
@@ -94,4 +101,4 @@ Route::get('/dashboard/laporan-kegiatan/partial', [LaporanKegiatanController::cl
        // === AKUN PENGGUNA ===
     Route::resource('akun-pengguna', AkunPenggunaController::class)->except(['show'])->names('akun-pengguna');
     Route::get('/akun-pengguna/settings', [AkunPenggunaController::class, 'settings'])->name('akun-pengguna.settings');
-    });
+});

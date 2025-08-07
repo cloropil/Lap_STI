@@ -13,6 +13,7 @@ use Carbon\Carbon;
  * @property int $lokasi_id
  * @property string|null $open_tiket
  * @property string|null $link_up
+ * @property string|null $link_upGSM  
  * @property string|null $durasi
  * @property string|null $penyebab
  * @property string|null $action
@@ -20,8 +21,7 @@ use Carbon\Carbon;
  * @property string|null $status_koneksi
  * @property string|null $status_tiket
  * @property string|null $jenis_gangguan
- * 
- * @property-read \Illuminate\Support\Collection $stopclocks
+ * * @property-read \Illuminate\Support\Collection $stopclocks
  * @property-read \App\Models\Lokasi|null $lokasi
  */
 class InputTiket extends Model
@@ -34,6 +34,7 @@ class InputTiket extends Model
         'open_tiket',
         'stopclock',
         'link_up',
+        'link_upGSM', // Tambahkan 'link_upGSM'
         'durasi',
         'penyebab',
         'action',
@@ -84,10 +85,16 @@ class InputTiket extends Model
         return $this->open_tiket ? Carbon::parse($this->open_tiket)->format('d M Y H:i') : '-';
     }
 
-    // Accessor untuk format tanggal link_up
+    // Accessor untuk format tanggal link_up (FO)
     public function getLinkUpFormattedAttribute()
     {
         return $this->link_up ? Carbon::parse($this->link_up)->format('d M Y H:i') : '-';
+    }
+    
+    // Accessor untuk format tanggal link_upGSM
+    public function getLinkUpGSMFormattedAttribute()
+    {
+        return $this->link_upGSM ? Carbon::parse($this->link_upGSM)->format('d M Y H:i') : '-';
     }
 
     // Accessor fallback durasi

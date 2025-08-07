@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+// Mengubah 'Inputtike' menjadi 'InputTiket'
 use App\Models\InputTiket;
 use App\Models\LaporanKegiatan;
 use App\Models\Stopclock;
@@ -23,8 +24,8 @@ class InputTiketService
             $keyword = $request->input('search');
             $query->where(function ($q) use ($keyword) {
                 $q->where('no_tiket', 'like', "%$keyword%")
-                  ->orWhere('status_tiket', 'like', "%$keyword%")
-                  ->orWhereHas('lokasi', fn($lokasiQuery) => $lokasiQuery->where('lokasi', 'like', "%$keyword%"));
+                    ->orWhere('status_tiket', 'like', "%$keyword%")
+                    ->orWhereHas('lokasi', fn($lokasiQuery) => $lokasiQuery->where('lokasi', 'like', "%$keyword%"));
             });
         }
 
@@ -37,7 +38,7 @@ class InputTiketService
 
     public function getLaporanHarian(Request $request)
     {
-        $tanggal = $request->input('tanggal', now()->format('Y-m-d'));
+        $tanggal = $request->input('tangram', now()->format('Y-m-d'));
 
         return [
             'tikets' => InputTiket::with('lokasi')->whereDate('open_tiket', $tanggal)->get(),
@@ -53,6 +54,7 @@ class InputTiketService
             'no_tiket' => 'required|unique:input_tikets,no_tiket',
             'open_tiket' => 'required|date',
             'link_up' => 'nullable|date',
+            'link_upGSM' => 'nullable|date', // Tambahkan validasi untuk link_upGSM
             'penyebab' => 'nullable|string',
             'action' => 'nullable|string',
             'status_koneksi' => 'nullable|string',
@@ -65,15 +67,23 @@ class InputTiketService
             ->map(fn($file) => $file->store('action_images', 'public'))
             ->toArray();
 
+        // 💡 Logika baru: Tentukan status tiket berdasarkan link_up (FO)
+        // Jika link_up (FO) diisi, status tiket menjadi 'Selesai'.
+        // Jika tidak, status tiket akan mengikuti nilai dari form (default 'Proses' untuk staff).
+        $statusTiket = $request->filled('link_up') ? 'Selesai' : $request->input('status_tiket', 'Proses');
+
         $tiket = InputTiket::create(array_merge($data, [
+            'status_tiket' => $statusTiket, // Gunakan status tiket yang sudah dimodifikasi
             'action_images' => json_encode($imagePaths),
             'stopclock' => '0x stopclock',
-            'durasi' => 'Belum dihitung',
         ]));
 
         $totalStopclock = $this->storeStopclocks($request, $tiket->id);
-        $this->updateDurasi($tiket, $request->input('link_up', $tiket->link_up), $totalStopclock);
-        $this->createTiketLog($tiket->id, $request->input('status_tiket'), Auth::user()->email);
+        
+        // Panggil updateDurasi untuk menghitung atau mengosongkan durasi berdasarkan link_up (FO)
+        $this->updateDurasi($tiket, $request->input('link_up'), $totalStopclock);
+        
+        $this->createTiketLog($tiket->id, $statusTiket, Auth::user()->email); // Gunakan status tiket yang sudah dimodifikasi
 
         return $tiket;
     }
@@ -86,7 +96,8 @@ class InputTiketService
             'lokasi_id' => 'required|exists:lokasis,id',
             'open_tiket' => 'required|date',
             'link_up' => 'nullable|date',
-            'penyebab' => 'required|string',
+            'link_upGSM' => 'nullable|date', // Tambahkan validasi untuk link_upGSM
+            'penyebab' => 'nullable|string', // Mengubah 'required' menjadi 'nullable' agar sesuai form
             'action' => 'nullable|string',
             'status_koneksi' => 'nullable|string',
             'jenis_gangguan' => 'nullable|string',
@@ -114,15 +125,23 @@ class InputTiketService
 
         $tiket->stopclocks()->delete();
         $totalStopclock = $this->storeStopclocks($request, $tiket->id);
-        $this->updateDurasi($tiket, $request->input('link_up', $tiket->link_up), $totalStopclock);
 
+        // 💡 Logika baru: Tentukan status tiket berdasarkan link_up (FO)
+        // Jika link_up (FO) diisi, status tiket menjadi 'Selesai'.
+        // Jika tidak, status tiket akan mengikuti nilai dari form atau nilai yang ada di database.
+        $statusTiket = $request->filled('link_up') ? 'Selesai' : $request->input('status_tiket', $tiket->status_tiket);
+        
         $updateData = $data;
+        $updateData['status_tiket'] = $statusTiket; // Gunakan status tiket yang sudah dimodifikasi
         $updateData['action_images'] = json_encode($existingImages);
         $updateData['stopclock'] = Stopclock::where('input_tiket_id', $tiket->id)->count() . 'x stopclock';
 
         $tiket->update($updateData);
+        
+        // Panggil updateDurasi setelah update tiket untuk memastikan data terbaru digunakan
+        $this->updateDurasi($tiket, $request->input('link_up'), $totalStopclock);
 
-        $this->createTiketLog($tiket->id, $request->input('status_tiket'), Auth::user()->email);
+        $this->createTiketLog($tiket->id, $statusTiket, Auth::user()->email); // Gunakan status tiket yang sudah dimodifikasi
 
         return $tiket;
     }
@@ -133,7 +152,9 @@ class InputTiketService
 
         $tiket->formatted_open = $tiket->open_tiket ? Carbon::parse($tiket->open_tiket)->format('Y-m-d\TH:i') : '';
         $tiket->formatted_link_up = $tiket->link_up ? Carbon::parse($tiket->link_up)->format('Y-m-d\TH:i') : '';
-        $tiket->durasi_display = $tiket->durasi ?? 'Belum dihitung';
+        $tiket->formatted_link_upGSM = $tiket->link_upGSM ? Carbon::parse($tiket->link_upGSM)->format('Y-m-d\TH:i') : ''; // Tambahkan field untuk link_upGSM
+        
+        $tiket->durasi_display = $tiket->durasi ?? ''; 
 
         return [
             'tiket' => $tiket,
@@ -209,18 +230,38 @@ class InputTiketService
 
     public function updateDurasi($tiket, $linkUp, $totalStopclock)
     {
+        // Kondisi utama: Jika linkUp (FO) kosong, set durasi menjadi NULL di database
+        if (empty($linkUp)) {
+            $tiket->update(['durasi' => null]);
+            return; // Hentikan eksekusi fungsi
+        }
+
+        // Lanjutkan perhitungan durasi hanya jika linkUp tidak kosong
         $start = $tiket->open_tiket instanceof Carbon ? $tiket->open_tiket : Carbon::parse($tiket->open_tiket);
-        $end = $linkUp
-            ? ($linkUp instanceof Carbon ? $linkUp : Carbon::parse($linkUp))
-            : now();
+        $end = $linkUp instanceof Carbon ? $linkUp : Carbon::parse($linkUp);
 
         $totalMinutes = $start->diffInMinutes($end);
         $finalMinutes = max($totalMinutes - $totalStopclock, 0);
-        $jam = floor($finalMinutes / 60);
-        $menit = $finalMinutes % 60;
 
-        $durasi = ($jam > 0 ? "$jam Jam " : '') . "$menit Menit";
-        $tiket->update(['durasi' => $durasi]);
+        // Perhitungan hari, jam, menit yang lebih robust
+        $hari = floor($finalMinutes / 1440); // 1440 menit dalam sehari
+        $sisaMenitSetelahHari = $finalMinutes % 1440;
+        $jam = floor($sisaMenitSetelahHari / 60);
+        $menit = $sisaMenitSetelahHari % 60;
+
+        $durasiString = '';
+        if ($hari > 0) {
+            $durasiString .= "$hari hari ";
+        }
+        if ($jam > 0) {
+            $durasiString .= "$jam jam ";
+        }
+        // Tampilkan menit jika ada, atau jika total durasi 0 (untuk "0 menit")
+        if ($menit > 0 || ($hari == 0 && $jam == 0)) {
+            $durasiString .= "$menit menit";
+        }
+
+        $tiket->update(['durasi' => trim($durasiString)]);
     }
 
     public function createTiketLog($tiketId, $status, $email)

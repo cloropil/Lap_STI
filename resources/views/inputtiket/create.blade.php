@@ -52,8 +52,13 @@
                     </div>
 
                     <div>
-                        <label for="link_up" class="block text-sm text-gray-500 font-medium mb-1">Link Up</label>
+                        <label for="link_up" class="block text-sm text-gray-500 font-medium mb-1">Link Up FO</label>
                         <input type="datetime-local" id="link_up" name="link_up" value="{{ old('link_up') }}" class="w-full border border-gray-300 rounded-md text-sm">
+                    </div>
+
+                    <div>
+                        <label for="link_upGSM" class="block text-sm text-gray-500 font-medium mb-1">Link Up GSM</label>
+                        <input type="datetime-local" id="link_upGSM" name="link_upGSM" value="{{ old('link_upGSM') }}" class="w-full border border-gray-300 rounded-md text-sm">
                     </div>
 
                     <div>
@@ -73,18 +78,15 @@
 
                 {{-- KANAN --}}
                 <div class="space-y-5">
-                    @if (in_array($role, ['superadmin', 'admin']))
-                        <div>
-                            <label for="status_tiket" class="block text-sm text-gray-500 font-medium mb-1">Status Tiket</label>
-                            <select name="status_tiket" id="status_tiket" required class="w-full border border-gray-300 rounded-md text-sm">
-                                <option value="">-- Pilih Status Tiket --</option>
-                                <option value="Proses" @selected(old('status_tiket') == 'Proses')>Proses</option>
-                                <option value="Selesai" @selected(old('status_tiket') == 'Selesai')>Selesai</option>
-                            </select>
-                        </div>
-                    @else
-                        <input type="hidden" name="status_tiket" value="Proses">
-                    @endif
+                    
+                    {{-- 💡 PERUBAHAN: Status tiket sekarang selalu hidden input untuk semua role --}}
+                    {{-- Logika penentuan status tiket sudah di handle di backend Service --}}
+                    <input type="hidden" name="status_tiket" value="Proses" id="status_tiket_hidden">
+                    
+                    {{-- 💡 PERUBAHAN: Pesan peringatan untuk status tiket yang otomatis --}}
+                    <div id="status_message" class="hidden p-3 text-sm text-green-800 bg-green-50 border border-green-200 rounded">
+                        Status tiket akan otomatis berubah menjadi "Selesai" jika Link Up FO diisi.
+                    </div>
 
                     <div id="pesan_status" class="hidden p-3 text-sm text-yellow-800 bg-yellow-50 border border-yellow-200 rounded">
                         Tim masih proses backup GSM & Recovery FO belum bisa dilakukan karena menunggu progress tim PLN selesai.
@@ -104,9 +106,9 @@
                         <div class="flex items-center gap-3">
                             <select name="status_koneksi" id="status_koneksi" required class="w-full border border-gray-300 rounded-md text-sm">
                                 <option value="">-- Pilih Status Koneksi --</option>
-                                <option value="Terhubung" @selected(old('status_koneksi') == 'Terhubung')>Terhubung</option>
-                                <option value="Terkendala" @selected(old('status_koneksi') == 'Terkendala')>Terkendala</option>
-                                <option value="Putus" @selected(old('status_koneksi') == 'Putus')>Putus</option>
+                                <option value="Up" @selected(old('status_koneksi') == 'Up')>Up</option>
+                                <option value="GSM" @selected(old('status_koneksi') == 'GSM')>GSM</option>
+                                <option value="Down" @selected(old('status_koneksi') == 'Down')>Down</option>
                             </select>
                             <span id="status_indicator" class="w-3 h-3 rounded-full bg-gray-300 border border-gray-400"></span>
                         </div>
@@ -139,135 +141,198 @@
 </div>
 
 <script>
-let selectedFiles = [];
+    let selectedFiles = [];
+    const linkUpFoInput = document.getElementById('link_up');
+    const linkUpGsmInput = document.getElementById('link_upGSM');
+    const statusMessageDiv = document.getElementById('status_message');
+    const pesanStatusDiv = document.getElementById('pesan_status');
+    const statusTiketHiddenInput = document.getElementById('status_tiket_hidden');
 
-document.getElementById('action_images').addEventListener('change', function (event) {
-    const files = Array.from(event.target.files);
+    function toggleStatusMessage() {
+        if (linkUpFoInput.value) {
+            statusMessageDiv.classList.remove('hidden');
+            statusTiketHiddenInput.value = 'Selesai';
+        } else {
+            statusMessageDiv.classList.add('hidden');
+            statusTiketHiddenInput.value = 'Proses';
+        }
 
-    files.forEach(file => {
-        if (!file.type.startsWith('image/')) return;
+        if (linkUpGsmInput.value && !linkUpFoInput.value) {
+            pesanStatusDiv.classList.remove('hidden');
+        } else {
+            pesanStatusDiv.classList.add('hidden');
+        }
+    }
+    
+    // Panggil fungsi ini saat halaman dimuat dan setiap kali nilai input berubah
+    document.addEventListener('DOMContentLoaded', toggleStatusMessage);
+    linkUpFoInput?.addEventListener('change', toggleStatusMessage);
+    linkUpGsmInput?.addEventListener('change', toggleStatusMessage);
+    
+    // ... JavaScript lainnya tidak berubah ...
+    
+    document.getElementById('action_images').addEventListener('change', function (event) {
+        const files = Array.from(event.target.files);
 
-        selectedFiles.push(file);
+        files.forEach(file => {
+            if (!file.type.startsWith('image/')) return;
 
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            const container = document.createElement('div');
-            container.className = "relative w-24 h-24 border rounded overflow-hidden";
+            selectedFiles.push(file);
 
-            const img = document.createElement('img');
-            img.src = e.target.result;
-            img.className = "object-cover w-full h-full";
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const container = document.createElement('div');
+                container.className = "relative w-24 h-24 border rounded overflow-hidden";
 
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.innerText = '×';
-            btn.className = "absolute top-0 right-0 bg-red-600 text-white w-5 h-5 text-xs flex items-center justify-center rounded-bl cursor-pointer";
-            btn.onclick = function () {
-                const index = Array.from(container.parentNode.children).indexOf(container);
-                selectedFiles.splice(index, 1);
-                container.remove();
-                refreshInputFiles();
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.className = "object-cover w-full h-full";
+
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.innerText = '×';
+                btn.className = "absolute top-0 right-0 bg-red-600 text-white w-5 h-5 text-xs flex items-center justify-center rounded-bl cursor-pointer";
+                btn.onclick = function () {
+                    const index = Array.from(container.parentNode.children).indexOf(container);
+                    selectedFiles.splice(index, 1);
+                    container.remove();
+                    refreshInputFiles();
+                };
+
+                container.appendChild(img);
+                container.appendChild(btn);
+                document.getElementById('preview-container').appendChild(container);
             };
+            reader.readAsDataURL(file);
+        });
 
-            container.appendChild(img);
-            container.appendChild(btn);
-            document.getElementById('preview-container').appendChild(container);
-        };
-        reader.readAsDataURL(file);
+        refreshInputFiles();
     });
 
-    refreshInputFiles();
-});
-
-function refreshInputFiles() {
-    const dataTransfer = new DataTransfer();
-    selectedFiles.forEach(file => dataTransfer.items.add(file));
-    document.getElementById('action_images').files = dataTransfer.files;
-}
-
-function updateStatusColor() {
-    const status = document.getElementById('status_koneksi').value;
-    const indicator = document.getElementById('status_indicator');
-    indicator.classList.remove('bg-green-500', 'bg-yellow-400', 'bg-red-600', 'bg-gray-300');
-
-    switch (status) {
-        case 'Terhubung': indicator.classList.add('bg-green-500'); break;
-        case 'Terkendala': indicator.classList.add('bg-yellow-400'); break;
-        case 'Putus': indicator.classList.add('bg-red-600'); break;
-        default: indicator.classList.add('bg-gray-300'); break;
-    }
-}
-window.addEventListener('DOMContentLoaded', updateStatusColor);
-document.getElementById('status_koneksi')?.addEventListener('change', updateStatusColor);
-
-document.getElementById('lokasi_id')?.addEventListener('change', function () {
-    const lokasiId = this.value;
-    const sidInput = document.getElementById('sid');
-    if (!lokasiId) return sidInput.value = '';
-    fetch(`/lokasi/${lokasiId}/sid`)
-        .then(res => res.ok ? res.json() : Promise.reject())
-        .then(data => sidInput.value = data.sid ?? '')
-        .catch(() => { sidInput.value = ''; alert('Gagal mengambil SID.'); });
-});
-
-function addStopclockRow() {
-    const wrapper = document.getElementById('stopclock-wrapper');
-    const row = document.createElement('div');
-    row.className = 'stopclock-row flex items-center gap-2';
-
-    row.innerHTML = `
-        <input type="datetime-local" name="stopclocks[start_clock][]" class="start border border-gray-300 rounded-md text-sm" required>
-        <span class="text-gray-400">➡️</span>
-        <input type="datetime-local" name="stopclocks[stop_clock][]" class="end border border-gray-300 rounded-md text-sm" required>
-        <input type="text" name="stopclocks[alasan][]" placeholder="Alasan" class="alasan border border-gray-300 rounded-md text-sm" required>
-        <button type="button" onclick="this.parentElement.remove(); hitungDurasi();" class="text-red-500 hover:text-red-700 text-sm">🗑️</button>
-    `;
-
-    row.querySelector('.start').addEventListener('change', hitungDurasi);
-    row.querySelector('.end').addEventListener('change', hitungDurasi);
-    wrapper.appendChild(row);
-    hitungDurasi();
-}
-
-function hitungDurasi() {
-    const open = document.getElementById('open_tiket').value;
-    const linkUp = document.getElementById('link_up').value;
-    const durasiInput = document.getElementById('durasi');
-    const warning = document.getElementById('durasi_warning');
-
-    if (!open || !linkUp) return durasiInput.value = '';
-
-    const t1 = new Date(open);
-    const t2 = new Date(linkUp);
-    let durasi = (t2 - t1) / 60000;
-
-    if (isNaN(durasi) || durasi < 0) {
-        durasiInput.value = '0 menit';
-        warning.classList.remove('hidden');
-        return;
+    function refreshInputFiles() {
+        const dataTransfer = new DataTransfer();
+        selectedFiles.forEach(file => dataTransfer.items.add(file));
+        document.getElementById('action_images').files = dataTransfer.files;
     }
 
-    let stopclock = 0;
-    document.querySelectorAll('.stopclock-row').forEach(row => {
-        const s = new Date(row.querySelector('.start').value);
-        const e = new Date(row.querySelector('.end').value);
-        const d = (e - s) / 60000;
-        if (!isNaN(d) && d > 0) stopclock += d;
+    function updateStatusColor() {
+        const status = document.getElementById('status_koneksi').value;
+        const indicator = document.getElementById('status_indicator');
+        indicator.classList.remove('bg-green-500', 'bg-yellow-400', 'bg-red-600', 'bg-gray-300');
+
+        switch (status) {
+            case 'Up':
+                indicator.classList.add('bg-green-500');
+                break;
+            case 'GSM':
+                indicator.classList.add('bg-yellow-400');
+                break;
+            case 'Down':
+                indicator.classList.add('bg-red-600');
+                break;
+            default:
+                indicator.classList.add('bg-gray-300');
+                break;
+        }
+    }
+    window.addEventListener('DOMContentLoaded', updateStatusColor);
+    document.getElementById('status_koneksi')?.addEventListener('change', updateStatusColor);
+
+    document.getElementById('lokasi_id')?.addEventListener('change', function () {
+        const lokasiId = this.value;
+        const sidInput = document.getElementById('sid');
+        if (!lokasiId) return sidInput.value = '';
+        fetch(`/lokasi/${lokasiId}/sid`)
+            .then(res => res.ok ? res.json() : Promise.reject())
+            .then(data => sidInput.value = data.sid ?? '')
+            .catch(() => {
+                sidInput.value = '';
+                alert('Gagal mengambil SID.');
+            });
     });
 
-    durasi -= stopclock;
-    if (durasi < 0) durasi = 0;
+    function addStopclockRow() {
+        const wrapper = document.getElementById('stopclock-wrapper');
+        const row = document.createElement('div');
+        row.className = 'stopclock-row flex items-center gap-2';
 
-    const hari = Math.floor(durasi / 1440);
-    durasi %= 1440;
-    const jam = Math.floor(durasi / 60);
-    const menit = Math.floor(durasi % 60);
+        row.innerHTML = `
+            <input type="datetime-local" name="stopclocks[start_clock][]" class="start border border-gray-300 rounded-md text-sm" required>
+            <span class="text-gray-400">➡️</span>
+            <input type="datetime-local" name="stopclocks[stop_clock][]" class="end border border-gray-300 rounded-md text-sm" required>
+            <input type="text" name="stopclocks[alasan][]" placeholder="Alasan" class="alasan border border-gray-300 rounded-md text-sm" required>
+            <button type="button" onclick="this.parentElement.remove(); hitungDurasi();" class="text-red-500 hover:text-red-700 text-sm">🗑️</button>
+        `;
 
-    durasiInput.value = `${hari ? hari + ' hari ' : ''}${jam ? jam + ' jam ' : ''}${menit || (!hari && !jam) ? menit + ' menit' : ''}`.trim();
-    warning.classList.add('hidden');
-}
+        row.querySelector('.start').addEventListener('change', hitungDurasi);
+        row.querySelector('.end').addEventListener('change', hitungDurasi);
+        wrapper.appendChild(row);
+        hitungDurasi();
+    }
 
-document.getElementById('open_tiket')?.addEventListener('change', hitungDurasi);
-document.getElementById('link_up')?.addEventListener('change', hitungDurasi);
+    function hitungDurasi() {
+        const open = document.getElementById('open_tiket').value;
+        const linkUp = document.getElementById('link_up').value;
+        const durasiInput = document.getElementById('durasi');
+        const warning = document.getElementById('durasi_warning');
+
+        // Jika linkUp kosong atau null, atur durasi menjadi kosong dan sembunyikan peringatan
+        if (!linkUp) {
+            durasiInput.value = '';
+            warning.classList.add('hidden');
+            return;
+        }
+
+        if (!open) { // Jika open_tiket juga kosong, bersihkan durasi dan sembunyikan peringatan
+            durasiInput.value = '';
+            warning.classList.add('hidden');
+            return;
+        }
+
+        const t1 = new Date(open);
+        const t2 = new Date(linkUp);
+        let durasi = (t2 - t1) / 60000;
+
+        if (isNaN(durasi) || durasi < 0) {
+            durasiInput.value = '0 menit';
+            warning.classList.remove('hidden');
+            return;
+        }
+
+        let stopclock = 0;
+        document.querySelectorAll('.stopclock-row').forEach(row => {
+            const s = new Date(row.querySelector('.start').value);
+            const e = new Date(row.querySelector('.end').value);
+            const d = (e - s) / 60000;
+            if (!isNaN(d) && d > 0) stopclock += d;
+        });
+
+        durasi -= stopclock;
+        if (durasi < 0) durasi = 0;
+
+        const hari = Math.floor(durasi / 1440);
+        durasi %= 1440;
+        const jam = Math.floor(durasi / 60);
+        const menit = Math.floor(durasi % 60);
+
+        // Format tampilan durasi
+        let durasiDisplay = '';
+        if (hari > 0) {
+            durasiDisplay += hari + ' hari ';
+        }
+        if (jam > 0) {
+            durasiDisplay += jam + ' jam ';
+        }
+        // Pastikan 'menit' selalu ditampilkan jika tidak ada hari dan jam, atau jika menit > 0
+        if (menit > 0 || (!hari && !jam && menit === 0)) {
+            durasiDisplay += menit + ' menit';
+        }
+
+        durasiInput.value = durasiDisplay.trim();
+        warning.classList.add('hidden');
+    }
+
+    document.getElementById('open_tiket')?.addEventListener('change', hitungDurasi);
+    document.getElementById('link_up')?.addEventListener('change', hitungDurasi);
 </script>
 @endsection

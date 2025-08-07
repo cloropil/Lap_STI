@@ -27,13 +27,18 @@
                 <p>{{ $tiket->stopclocks->count() > 0 ? $tiket->stopclocks->count() . 'x stopclock' : '-' }}</p>
             </div>
             <div>
+                <p class="text-gray-500 font-medium">Link Up GSM</p>
+                <p>{{ $tiket->link_upGSM ? \Carbon\Carbon::parse($tiket->link_upGSM)->format('d M Y H:i') : '-' }}</p>
+            </div>
+            <div>
                 <p class="text-gray-500 font-medium">Jenis Gangguan</p>
                 <p>{{ $tiket->jenis_gangguan ?? '-' }}</p>
             </div>
             <div>
-                <p class="text-gray-500 font-medium">Link Up</p>
+                <p class="text-gray-500 font-medium">Link Up FO</p>
                 <p>{{ $tiket->link_up ? \Carbon\Carbon::parse($tiket->link_up)->format('d M Y H:i') : '-' }}</p>
             </div>
+
             <div>
                 <p class="text-gray-500 font-medium">Penyebab</p>
                 <p>{{ $tiket->penyebab }}</p>
@@ -52,9 +57,9 @@
                 <div class="flex items-center gap-2">
                     <span 
                         class="inline-block w-3 h-3 rounded-full 
-                        @if ($tiket->status_koneksi === 'Terhubung') bg-green-500
-                        @elseif ($tiket->status_koneksi === 'Terkendala') bg-yellow-400
-                        @elseif ($tiket->status_koneksi === 'Putus') bg-red-500
+                        @if ($tiket->status_koneksi === 'Up') bg-green-500
+                        @elseif ($tiket->status_koneksi === 'GSM') bg-yellow-400
+                        @elseif ($tiket->status_koneksi === 'Down') bg-red-500
                         @else bg-gray-300 @endif">
                     </span>
                     <span>{{ $tiket->status_koneksi ?? '-' }}</span>

@@ -43,11 +43,17 @@
                 class="bg-sky-700 hover:bg-sky-400 text-white text-sm font-medium px-4 py-2 rounded-md shadow transition-all duration-200">
                 Cari
             </button>
+            
+            {{-- TOMBOL BARU: EKSPOR EXCEL --}}
+            <a href="{{ route('inputtiket.export', ['search' => request('search'), 'tanggal' => request('tanggal')]) }}"
+               class="bg-green-700 hover:bg-green-500 text-white text-sm font-medium px-4 py-2 rounded-md shadow transition-all duration-200">
+                Ekspor Excel
+            </a>
 
             <a href="{{ $userRole === 'staff' ? '#' : route('inputtiket.create') }}"
                onclick="{{ $userRole === 'staff' ? "showAccessDeniedModal(event, 'Anda tidak memiliki izin untuk menambahkan tiket.')" : '' }}"
                class="bg-sky-700 hover:bg-sky-400 text-white text-sm font-medium px-4 py-2 rounded-md shadow transition-all duration-200">
-               Tambah Tiket
+                Tambah Tiket
             </a>
         </form>
     </div>
@@ -63,8 +69,10 @@
                     <th class="border px-3 py-2">Gangguan</th>
                     <th class="border px-3 py-2">SID</th>
                     <th class="border px-3 py-2">Open</th>
-                    <th class="border px-3 py-2">Link Up</th>
+                    <th class="border px-3 py-2">Link Up FO</th>
+                    <th class="border px-3 py-2">Link Up GSM</th>
                     <th class="border px-3 py-2">Durasi</th>
+                    <th class="border px-3 py-2">Stopclock</th>
                     <th class="border px-3 py-2">Status</th>
                     <th class="border px-3 py-2">Gambar</th>
                     <th class="border px-3 py-2">Aksi</th>
@@ -80,7 +88,9 @@
                         <td class="border px-3 py-2 text-left">{{ $tiket->lokasi->sid ?? '-' }}</td>
                         <td class="border px-3 py-2">{{ $tiket->open_tiket_formatted }}</td>
                         <td class="border px-3 py-2">{{ $tiket->link_up_formatted }}</td>
+                        <td class="border px-3 py-2">{{ $tiket->link_upGSM_formatted }}</td>
                         <td class="border px-3 py-2">{{ $tiket->formatted_durasi }}</td>
+                        <td class="border px-3 py-2 text-left">{{ $tiket->stopclock ?? '-' }}</td>
                         <td class="border px-3 py-2">
                             @if($tiket->status_tiket == 'open')
                                 <span class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-1 rounded-full">Open</span>
@@ -100,7 +110,7 @@
                                     Hapus
                                 </button>
                             @else
-                                <a href="{{ route('inputtiket.edit', $tiket->id) }}" class="text-orange-600 hover:underline text-sm">Edit</a>
+                                <a href="{{ route('inputtiket.edit', $tiket->id) }}" class="text-orange-600 hover:underline text-sm">Update</a>
                                 <form action="{{ route('inputtiket.destroy', $tiket->id) }}" method="POST" class="inline" data-form-id="{{ $tiket->id }}">
                                     @csrf
                                     @method('DELETE')

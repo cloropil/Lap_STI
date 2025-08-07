@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\InputTiket;
 use App\Models\Lokasi;
 use App\Services\InputTiketService;
+use App\Exports\TiketExport; // Tambahkan baris ini
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel; // Tambahkan baris ini
 
 class InputTiketController extends Controller
 {
@@ -64,5 +66,19 @@ class InputTiketController extends Controller
         $tiket = InputTiket::with(['lokasi', 'stopclocks'])->findOrFail($id);
         return view('inputtiket.show', compact('tiket'));
     }
+    
+    /**
+     * Export tiket data to Excel.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     */
+    public function export(Request $request)
+    {
+        $search = $request->input('search');
+        $tanggal = $request->input('tanggal');
 
+        // Pastikan kelas TiketExport sudah dibuat sesuai instruksi sebelumnya
+        return Excel::download(new TiketExport($search, $tanggal), 'data-tiket-gangguan.xlsx');
+    }
 }

@@ -71,7 +71,7 @@
                             @if(in_array($user->role, ['superadmin', 'admin']))
                                 <a href="{{ route('kegiatan.edit', $laporan->id) }}"
                                    class="text-yellow-600 hover:underline text-sm">
-                                    Edit
+                                    Update
                                 </a>
                                 <form action="{{ route('kegiatan.destroy', $laporan->id) }}" method="POST" class="inline"
                                       onsubmit="return confirm('Yakin ingin menghapus laporan ini?');">
