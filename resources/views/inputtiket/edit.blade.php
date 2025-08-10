@@ -95,17 +95,15 @@
             {{-- KANAN --}}
             <div class="space-y-5">
                 <div>
-                    <label class="block text-sm text-gray-500 font-medium mb-1">Penyebab <span class="text-red-500">*</span></label>
+                    <label class="block text-sm text-gray-500 font-medium mb-1">Penyebab</label>
                     <input type="text" name="penyebab" value="{{ old('penyebab', $tiket->penyebab) }}"
-                        class="w-full border @error('penyebab') border-red-500 @else border-gray-300 @enderror rounded-md text-sm"
-                        required>
+                        class="w-full border @error('penyebab') border-red-500 @else border-gray-300 @enderror rounded-md text-sm">
                 </div>
 
                 <div>
-                    <label class="block text-sm text-gray-500 font-medium mb-1">Action <span class="text-red-500">*</span></label>
+                    <label class="block text-sm text-gray-500 font-medium mb-1">Action</label>
                     <textarea name="action" rows="2"
-                        class="w-full border @error('action') border-red-500 @else border-gray-300 @enderror rounded-md text-sm"
-                        required>{{ old('action', $tiket->action) }}</textarea>
+                        class="w-full border @error('action') border-red-500 @else border-gray-300 @enderror rounded-md text-sm">{{ old('action', $tiket->action) }}</textarea>
                 </div>
 
                 <div>

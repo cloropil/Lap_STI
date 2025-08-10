@@ -63,37 +63,39 @@
                         <td class="border border-gray-400 px-3 py-2 text-left text-gray-700  max-w-xs">
                             {!! nl2br(e(Str::limit($laporan->kegiatan, 120))) !!}
                         </td>
-                        <td class="border border-gray-400 px-3 py-2 space-x-2">
-                            <a href="{{ route('kegiatan.show', $laporan->id) }}" class="text-blue-600 hover:underline text-sm">
-                                Lihat
-                            </a>
-
-                            @if(in_array($user->role, ['superadmin', 'admin']))
-                                <a href="{{ route('kegiatan.edit', $laporan->id) }}"
-                                   class="text-yellow-600 hover:underline text-sm">
-                                    Update
+                        <td class="border border-gray-400 px-3 py-2">
+                            <div class="flex flex-wrap gap-2 justify-center items-center">
+                                <a href="{{ route('kegiatan.show', $laporan->id) }}" class="text-blue-600 hover:underline text-sm">
+                                    Lihat
                                 </a>
-                                <form action="{{ route('kegiatan.destroy', $laporan->id) }}" method="POST" class="inline"
-                                      onsubmit="return confirm('Yakin ingin menghapus laporan ini?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit"
-                                            class="text-red-600 hover:underline text-sm bg-transparent border-0">
+
+                                @if(in_array($user->role, ['superadmin', 'admin']))
+                                    <a href="{{ route('kegiatan.edit', $laporan->id) }}"
+                                       class="text-yellow-600 hover:underline text-sm">
+                                        Update
+                                    </a>
+                                    <form action="{{ route('kegiatan.destroy', $laporan->id) }}" method="POST" class="inline"
+                                          onsubmit="return confirm('Yakin ingin menghapus laporan ini?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit"
+                                                class="text-red-600 hover:underline text-sm bg-transparent border-0">
+                                            Hapus
+                                        </button>
+                                    </form>
+                                @elseif($user->role === 'staff')
+                                    <a href="#"
+                                       onclick="showAccessModal(event, 'mengedit')"
+                                       class="text-yellow-600 hover:underline text-sm">
+                                        Edit
+                                    </a>
+                                    <button type="button"
+                                            onclick="showAccessModal(event, 'menghapus')"
+                                            class="text-red-600 hover:underline text-sm bg-transparent border-0 cursor-pointer">
                                         Hapus
                                     </button>
-                                </form>
-                            @elseif($user->role === 'staff')
-                                <a href="#"
-                                   onclick="showAccessModal(event, 'mengedit')"
-                                   class="text-yellow-600 hover:underline text-sm">
-                                    Edit
-                                </a>
-                                <button type="button"
-                                        onclick="showAccessModal(event, 'menghapus')"
-                                        class="text-red-600 hover:underline text-sm bg-transparent border-0 cursor-pointer">
-                                    Hapus
-                                </button>
-                            @endif
+                                @endif
+                            </div>
                         </td>
                     </tr>
                 @empty

@@ -33,9 +33,9 @@
                     Cetak Laporan
                 </button> -->
             </form>
-            <button type="button" onclick="salinSemuaLaporan()"
-                class="border border-gray-300 hover:bg-gray-100 text-gray-700 text-sm font-medium px-4 py-2 rounded-md">
-                Salin Semua Laporan
+            <button onclick="salinSemuaLaporan()" 
+                    class="px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-green-600 transition">
+                    📋 Salin Semua Laporan
             </button>
         </div>
     </div>
@@ -56,7 +56,17 @@
             <p><span class="inline-block w-44 font-medium">No Tiket</span>: {{ $tiket->no_tiket }}</p>
             <p><span class="inline-block w-44 font-medium">Open Tiket</span>: {{ \Carbon\Carbon::parse($tiket->open_tiket)->format('d-m-Y (H:i \W\I\B)') }}</p>
             <p><span class="inline-block w-44 font-medium">Stopclock</span>: {{ $tiket->stopclock ?? '-' }}</p>
-            <p><span class="inline-block w-44 font-medium">Link Up</span>: {{ $tiket->link_up ? \Carbon\Carbon::parse($tiket->link_up)->format('d-m-Y (H:i \W\I\B)') : '--:-- WIB' }}</p>
+            {{-- Link Up GSM --}}
+<p>
+    <span class="inline-block w-44 font-medium">Link Up GSM</span>:
+    {{ $tiket->link_upGSM ? \Carbon\Carbon::parse($tiket->link_upGSM)->format('d-m-Y (H:i \W\I\B)') : '--:-- WIB' }}
+</p>
+
+{{-- Link Up FO --}}
+<p>
+    <span class="inline-block w-44 font-medium">Link Up FO</span>:
+    {{ $tiket->link_up ? \Carbon\Carbon::parse($tiket->link_up)->format('d-m-Y (H:i \W\I\B)') : '--:-- WIB' }}
+</p>
             <p><span class="inline-block w-44 font-medium">Durasi</span>: {{ $tiket->durasi ?? '> 3 Jam' }}</p>
             <p><span class="inline-block w-44 font-medium">Jenis Gangguan</span>: {{ $tiket->jenis_gangguan ?? '-' }}</p>
             <p><span class="inline-block w-44 font-medium">Penyebab</span>: {{ $tiket->penyebab }}</p>
@@ -171,49 +181,51 @@ function salinSemuaLaporan() {
         return;
     }
 
-    let teks = '';
-    teks += `Laporan Harian Jaringan Office & SCADA\n`;
-    teks += `Tanggal: {{ \Carbon\Carbon::parse($tanggal)->translatedFormat('l, d F Y') }}\n\n`;
+    let teks = "";
+    teks += "Laporan Harian Jaringan Office & SCADA\n";
+    teks += "Tanggal           : {{ \Carbon\Carbon::parse($tanggal)->translatedFormat('l, d F Y') }}\n\n";
 
-    teks += `A. Laporan Harian (08:00 - 16:00 WIB)\n`;
-    teks += `I. Gangguan Jaringan SCADA : {{ $scadaCount > 0 ? $scadaCount . ' Tiket' : 'Nihil' }}\n`;
-    teks += `II. Layanan WAN Office : {{ $wanCount > 0 ? $wanCount . ' Tiket' : 'Nihil' }}\n`;
-    teks += `III. Tiket Keluhan : {{ $tikets->count() }}\n\n`;
+    teks += "A. Laporan Harian (08:00 - 16:00 WIB)\n";
+    teks += "I.  Gangguan Jaringan SCADA : {{ $scadaCount > 0 ? $scadaCount . ' Tiket' : 'Nihil' }}\n";
+    teks += "II. Layanan WAN Office      : {{ $wanCount > 0 ? $wanCount . ' Tiket' : 'Nihil' }}\n";
+    teks += "III.Tiket Keluhan           : {{ $tikets->count() }}\n\n";
 
     @foreach ($tikets as $index => $tiket)
-        teks += `{{ $index + 1 }}. [UIW SUMBAR] {{ $tiket->lokasi->lokasi }}\n`;
-        teks += `SID\t            : {{ $tiket->lokasi->sid }}\n`;
-        teks += `No Tiket\t            : {{ $tiket->no_tiket }}\n`;
-        teks += `Open Tiket         : {{ \Carbon\Carbon::parse($tiket->open_tiket)->format('d-m-Y (H:i WIB)') }}\n`;
-        teks += `Stopclock           : {{ $tiket->stopclock ?? '-' }}\n`;
-        teks += `Link Up\t            : {{ $tiket->link_up ? \Carbon\Carbon::parse($tiket->link_up)->format('d-m-Y (H:i WIB)') : '--:-- WIB' }}\n`;
-        teks += `Durasi\t            : {{ $tiket->durasi ?? '> 3 Jam' }}\n`;
-        teks += `Jenis Gangguan : {{ $tiket->jenis_gangguan ?? '-' }}\n`;
-        teks += `Penyebab           : {{ $tiket->penyebab }}\n`;
-        teks += `Action\t            : {!! str_replace(["\r", "\n"], ["", '\\n'], e($tiket->action ?? '-')) !!}\n`;
+        teks += "{{ $index + 1 }}. [UIW SUMBAR] {{ $tiket->lokasi->lokasi ?? '-' }}\n";
+        teks += "SID               : {{ $tiket->lokasi->sid ?? '-' }}\n";
+        teks += "No Tiket          : {{ $tiket->no_tiket ?? '-' }}\n";
+        teks += "Open Tiket        : {{ $tiket->open_tiket ? \Carbon\Carbon::parse($tiket->open_tiket)->format('d-m-Y H:i') : '-' }} WIB\n";
+        teks += "Stopclock         : {{ $tiket->stopclocks->count() > 0 ? $tiket->stopclocks->count() . 'x stopclock' : '-' }}\n";
+        teks += "Link Up GSM       : {{ $tiket->link_upGSM ? \Carbon\Carbon::parse($tiket->link_upGSM)->format('d-m-Y H:i') : '-' }} WIB\n";
+        teks += "Jenis Gangguan    : {{ $tiket->jenis_gangguan ?? '-' }}\n";
+        teks += "Link Up FO        : {{ $tiket->link_up ? \Carbon\Carbon::parse($tiket->link_up)->format('d-m-Y H:i') : '-' }} WIB\n";
+        teks += "Penyebab          : {{ $tiket->penyebab ?? '-' }}\n";
+        teks += "Durasi            : {{ $tiket->durasi ?? '-' }}\n";
+        teks += "Action            : {!! str_replace(["\r", "\n"], ["", '\\n'], e($tiket->action ?? '-')) !!}\n";
 
-        {{-- Modifikasi untuk Status Koneksi --}}
-        @if ($tiket->status_koneksi == 'Terhubung')
-            teks += `Status Koneksi   : Terhubung 🟢\n`;
-        @elseif ($tiket->status_koneksi == 'Terkendala')
-            teks += `Status Koneksi   : Terkendala 🟡\n`;
-        @elseif ($tiket->status_koneksi == 'Putus')
-            teks += `Status Koneksi   : Putus 🔴\n`;
+        // Status Koneksi
+        @if ($tiket->status_koneksi === 'Up')
+            teks += "Status Koneksi    : Up 🟢\n";
+        @elseif ($tiket->status_koneksi === 'GSM')
+            teks += "Status Koneksi    : GSM 🟡\n";
+        @elseif ($tiket->status_koneksi === 'Down')
+            teks += "Status Koneksi    : Down 🔴\n";
         @else
-            teks += `Status Koneksi   : {{ $tiket->status_koneksi ?? '-' }}\n`;
+            teks += "Status Koneksi    : {{ $tiket->status_koneksi ?? '-' }}\n";
         @endif
 
-        {{-- Modifikasi untuk Status Tiket --}}
-        @if ($tiket->status_tiket == 'Proses')
-            teks += `Status Tiket        : Proses ⏳\n`;
-        @elseif ($tiket->status_tiket == 'Selesai')
-            teks += `Status Tiket        : Selesai ✅\n`;
+        // Status Tiket
+        @if ($tiket->status_tiket === 'Proses')
+            teks += "Status Tiket      : Proses ⏳\n";
+        @elseif ($tiket->status_tiket === 'Selesai')
+            teks += "Status Tiket      : Selesai ✅\n";
         @else
-            teks += `Status Tiket        : {{ $tiket->status_tiket ?? '-' }}\n`;
+            teks += "Status Tiket      : {{ $tiket->status_tiket ?? '-' }}\n";
         @endif
 
+        // Rincian Stopclock
         @if ($tiket->stopclocks && $tiket->stopclocks->count() > 0)
-            teks += `\n🕒 Rincian Stopclock:\n`;
+            teks += "\n🕒 Rincian Stopclock:\n";
             @php $totalMenit = 0; @endphp
             @foreach ($tiket->stopclocks as $i => $sc)
                 @php
@@ -224,40 +236,35 @@ function salinSemuaLaporan() {
                     $jam = floor($durasiMenit / 60);
                     $menit = $durasiMenit % 60;
                 @endphp
-                teks += `{{ $i + 1 }}. Start: {{ $start->format('d-m-Y H:i') }}, Stop: {{ $stop->format('d-m-Y H:i') }}\n`;
-                teks += `   Alasan : {{ $sc->alasan }}\n`;
-                teks += `   Durasi : {{ $jam > 0 ? $jam . ' Jam ' : '' }}{{ $menit }} Menit\n`;
-                teks += `------------------------------------\n`;
+                teks += "{{ $i + 1 }}. Start : {{ $start->format('d-m-Y H:i') }}, Stop : {{ $stop->format('d-m-Y H:i') }}\n";
+                teks += "   Alasan : {{ $sc->alasan ?? '-' }}\n";
+                teks += "   Durasi : {{ $jam > 0 ? $jam . ' Jam ' : '' }}{{ $menit }} Menit\n";
             @endforeach
             @php
                 $totalJam = floor($totalMenit / 60);
                 $totalSisaMenit = $totalMenit % 60;
             @endphp
-            teks += `Total Stopclock: {{ $totalJam > 0 ? $totalJam . ' Jam ' : '' }}{{ $totalSisaMenit }} Menit\n`;
-            teks += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+            teks += "Total Stopclock  : {{ $totalJam > 0 ? $totalJam . ' Jam ' : '' }}{{ $totalSisaMenit }} Menit\n";
         @endif
 
-        teks += `\n`;
+        teks += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n";
     @endforeach
 
-    teks += `B. Laporan Kegiatan Harian:\n\n`;
+    teks += "B. Laporan Kegiatan Harian:\n\n";
     @foreach ($kegiatanHarian as $index => $kegiatan)
-        teks += `{{ $index + 1 }}. {{ $kegiatan->judul }}\n`;
-        teks += `Waktu\t    : {{ \Carbon\Carbon::parse($kegiatan->tanggal)->format('d-m-Y') }} | {{ $kegiatan->waktu }} WIB\n`;
-        teks += `Siapa\t    : {{ $kegiatan->siapa ?? '-' }}\n`;
-        teks += `Deskripsi\t    :\n{!! str_replace(["\r", "\n"], ["", '\\n'], e($kegiatan->kegiatan)) !!}\n`;
-        teks += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+        teks += "{{ $index + 1 }}. {{ $kegiatan->judul ?? '-' }}\n";
+        teks += "Waktu             : {{ \Carbon\Carbon::parse($kegiatan->tanggal)->format('d-m-Y') }} | {{ $kegiatan->waktu ?? '-' }} WIB\n";
+        teks += "Siapa             : {{ $kegiatan->siapa ?? '-' }}\n";
+        teks += "Deskripsi         : {!! str_replace(["\r", "\n"], ["", '\\n'], e($kegiatan->kegiatan ?? '-')) !!}\n";
+        teks += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n";
     @endforeach
 
+    // Bungkus dengan blok monospace biar rapi di WA
+    let laporanFinal = "```" + teks + "```";
 
-    const textarea = document.createElement("textarea");
-    textarea.value = teks;
-    document.body.appendChild(textarea);
-    textarea.select();
-    document.execCommand("copy");
-    document.body.removeChild(textarea);
-
-    alert("Laporan berhasil disalin ke clipboard.");
+    navigator.clipboard.writeText(laporanFinal)
+        .then(() => alert("Laporan berhasil disalin ke clipboard."))
+        .catch(() => alert("Gagal menyalin laporan."));
 }
 </script>
 @endpush

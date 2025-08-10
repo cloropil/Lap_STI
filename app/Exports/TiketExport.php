@@ -5,10 +5,12 @@ namespace App\Exports;
 use App\Models\InputTiket;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithStyles; // Tambahkan ini
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet; // Tambahkan ini
+use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\WithMapping; // Tambahkan ini
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
-class TiketExport implements FromCollection, WithHeadings, WithStyles // Tambahkan WithStyles di sini
+class TiketExport implements FromCollection, WithHeadings, WithStyles, WithMapping
 {
     protected $search;
     protected $tanggal;
@@ -19,9 +21,25 @@ class TiketExport implements FromCollection, WithHeadings, WithStyles // Tambahk
         $this->tanggal = $tanggal;
     }
 
+    public function map($tiket): array
+    {
+        return [
+            $tiket->no_tiket,
+            $tiket->lokasi->lokasi ?? '-',
+            $tiket->jenis_gangguan ?? '-',
+            isset($tiket->lokasi->sid) ? ' ' . $tiket->lokasi->sid : '-', // Tambahkan spasi di depan SID
+            $tiket->open_tiket_formatted,
+            $tiket->link_up_formatted,
+            $tiket->link_upGSM_formatted,
+            $tiket->formatted_durasi,
+            $tiket->stopclock ?? '-',
+            $tiket->status_tiket,
+            count($tiket->action_images_array),
+        ];
+    }
+
     public function collection()
     {
-        // ... (kode collection() yang sudah ada)
         $query = InputTiket::with('lokasi');
 
         if ($this->search) {
@@ -36,32 +54,19 @@ class TiketExport implements FromCollection, WithHeadings, WithStyles // Tambahk
             $query->whereDate('created_at', $this->tanggal);
         }
         
-        return $query->get()->map(function ($tiket) {
-            return [
-                'No Tiket' => $tiket->no_tiket,
-                'Lokasi' => $tiket->lokasi->lokasi ?? '-',
-                'Gangguan' => $tiket->jenis_gangguan ?? '-',
-                'SID' => $tiket->lokasi->sid ?? '-',
-                'Open' => $tiket->open_tiket_formatted,
-                'Link Up' => $tiket->link_up_formatted,
-                'Durasi' => $tiket->formatted_durasi,
-                'Stopclock' => $tiket->stopclock ?? '-',
-                'Status' => $tiket->status_tiket,
-                'Jumlah Gambar' => count($tiket->action_images_array),
-            ];
-        });
+        return $query->get();
     }
 
     public function headings(): array
     {
-        // ... (kode headings() yang sudah ada)
         return [
             'No Tiket',
             'Lokasi',
             'Gangguan',
             'SID',
             'Open',
-            'Link Up',
+            'Link Up FO',
+            'Link Up GSM',
             'Durasi',
             'Stopclock',
             'Status',
@@ -76,11 +81,20 @@ class TiketExport implements FromCollection, WithHeadings, WithStyles // Tambahk
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
+        // Mengatur font seluruh sheet menjadi Times New Roman
+        $sheet->getStyle('A1:' . $sheet->getHighestColumn() . $sheet->getHighestRow())
+            ->applyFromArray([
+                'font' => [
+                    'name' => 'Times New Roman',
+                ],
+            ]);
+
         // Memberi style pada baris judul (baris 1)
-        $sheet->getStyle('A1:J1')->applyFromArray([
+        $sheet->getStyle('A1:K1')->applyFromArray([
             'font' => [
                 'bold' => true,
                 'color' => ['argb' => 'FFFFFFFF'], // Warna putih
+                'name' => 'Times New Roman', // Pastikan judul juga Times New Roman
             ],
             'alignment' => [
                 'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
@@ -96,6 +110,12 @@ class TiketExport implements FromCollection, WithHeadings, WithStyles // Tambahk
                 ],
             ],
         ]);
+
+        // Mengatur format kolom SID (kolom D) menjadi text agar tidak berubah jadi notasi ilmiah
+        $highestRow = $sheet->getHighestRow();
+        $sheet->getStyle('D2:D' . $highestRow)
+            ->getNumberFormat()
+            ->setFormatCode(NumberFormat::FORMAT_TEXT);
 
         // Mengatur alignment text untuk semua data (baris 2 ke bawah)
         $sheet->getStyle('A2:' . $sheet->getHighestColumn() . $sheet->getHighestRow())
