@@ -60,7 +60,7 @@
                     class="w-full border border-gray-300 rounded-md text-base px-2 py-1.5">
                     <option value="">-- Pilih --</option>
                     <option value="INTERNET" {{ old('kategori_layanan') == 'INTERNET' ? 'selected' : '' }}>INTERNET</option>
-                    <option value="INTERNET" {{ old('kategori_layanan') == 'INTERNET' ? 'selected' : '' }}>IPVPN</option>
+                    <option value="IPVPN" {{ old('kategori_layanan') == 'IPVPN' ? 'selected' : '' }}>IPVPN</option>
                     <option value="IPVSAT" {{ old('kategori_layanan') == 'IPVSAT' ? 'selected' : '' }}>IPVSAT</option>
                     <option value="CLEAR CHANNEL" {{ old('kategori_layanan') == 'CLEARCHANNEL' ? 'selected' : '' }}>CLEAR CHANNEL</option>
                     <option value="METRONET" {{ old('kategori_layanan') == 'METRONET' ? 'selected' : '' }}>METRONET</option>
