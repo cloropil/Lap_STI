@@ -82,7 +82,7 @@
                     'inputtiket.index' => 'Tiket',
                     'kegiatan.index' => 'Kegiatan',
                     'laporan.harian' => 'Laporan',
-                    'lokasi.index' => 'Lokasi'
+                    'lokasi.index' => 'Layanan'
                 ]; @endphp
 
                 <div class="tubelight"></div>

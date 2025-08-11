@@ -22,6 +22,9 @@ class InputTiketController extends Controller
     public function index(Request $request)
     {
         $tikets = $this->service->getFilteredTikets($request);
+        foreach ($tikets as $tiket) {
+            $tiket->status_koneksi_formatted = $tiket->status_koneksi ?? '-';
+        }
         return view('inputtiket.index', compact('tikets'));
     }
 

@@ -30,9 +30,9 @@
                 {{-- KIRI --}}
                 <div class="space-y-5">
                     <div>
-                        <label for="lokasi_id" class="block text-sm text-gray-500 font-medium mb-1">Lokasi</label>
+                        <label for="lokasi_id" class="block text-sm text-gray-500 font-medium mb-1">Layanan</label>
                         <select name="lokasi_id" id="lokasi_id" required class="w-full border border-gray-300 rounded-md text-sm">
-                            <option value="">-- Pilih Lokasi --</option>
+                            <option value="">-- Pilih Layanan --</option>
                             @foreach ($lokasis as $lokasi)
                                 <option value="{{ $lokasi->id }}" @selected(old('lokasi_id') == $lokasi->id)>{{ $lokasi->lokasi }}</option>
                             @endforeach
@@ -52,13 +52,13 @@
                     </div>
 
                     <div>
-                        <label for="link_up" class="block text-sm text-gray-500 font-medium mb-1">Link Up FO</label>
-                        <input type="datetime-local" id="link_up" name="link_up" value="{{ old('link_up') }}" class="w-full border border-gray-300 rounded-md text-sm">
+                        <label for="link_upGSM" class="block text-sm text-gray-500 font-medium mb-1">Link Up GSM</label>
+                        <input type="datetime-local" id="link_upGSM" name="link_upGSM" value="{{ old('link_upGSM') }}" class="w-full border border-gray-300 rounded-md text-sm">
                     </div>
 
                     <div>
-                        <label for="link_upGSM" class="block text-sm text-gray-500 font-medium mb-1">Link Up GSM</label>
-                        <input type="datetime-local" id="link_upGSM" name="link_upGSM" value="{{ old('link_upGSM') }}" class="w-full border border-gray-300 rounded-md text-sm">
+                        <label for="link_up" class="block text-sm text-gray-500 font-medium mb-1">Link Up FO</label>
+                        <input type="datetime-local" id="link_up" name="link_up" value="{{ old('link_up') }}" class="w-full border border-gray-300 rounded-md text-sm">
                     </div>
 
                     <div>
@@ -96,8 +96,9 @@
                         <label for="jenis_gangguan" class="block text-sm text-gray-500 font-medium mb-1">Jenis Gangguan</label>
                         <select name="jenis_gangguan" id="jenis_gangguan" required class="w-full border border-gray-300 rounded-md text-sm">
                             <option value="">-- Pilih Jenis Gangguan --</option>
+                            <option value="WAN Office" @selected(old('jenis_gangguan') == 'WAN Office')>WAN Office</option>
                             <option value="SCADA" @selected(old('jenis_gangguan') == 'SCADA')>Jaringan SCADA</option>
-                            <option value="WAN" @selected(old('jenis_gangguan') == 'WAN')>WAN Office</option>
+                            <option value="Keluhan" @selected(old('jenis_gangguan') == 'Keluhan')>Keluhan</option>
                         </select>
                     </div>
 
@@ -106,8 +107,8 @@
                         <div class="flex items-center gap-3">
                             <select name="status_koneksi" id="status_koneksi" required class="w-full border border-gray-300 rounded-md text-sm">
                                 <option value="">-- Pilih Status Koneksi --</option>
-                                <option value="Up" @selected(old('status_koneksi') == 'Up')>Up</option>
-                                <option value="GSM" @selected(old('status_koneksi') == 'GSM')>GSM</option>
+                                <option value="Up" @selected(old('status_koneksi') == 'Up')>Link Up FO</option>
+                                <option value="GSM" @selected(old('status_koneksi') == 'GSM')>Link Up GSM</option>
                                 <option value="Down" @selected(old('status_koneksi') == 'Down')>Down</option>
                             </select>
                             <span id="status_indicator" class="w-3 h-3 rounded-full bg-gray-300 border border-gray-400"></span>
@@ -165,7 +166,11 @@
     }
     
     // Panggil fungsi ini saat halaman dimuat dan setiap kali nilai input berubah
-    document.addEventListener('DOMContentLoaded', toggleStatusMessage);
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('status_koneksi').value = 'Down';
+        updateStatusColor();
+        toggleStatusMessage();
+    });
     linkUpFoInput?.addEventListener('change', toggleStatusMessage);
     linkUpGsmInput?.addEventListener('change', toggleStatusMessage);
     
@@ -244,7 +249,9 @@
         if (!lokasiId) return sidInput.value = '';
         fetch(`/lokasi/${lokasiId}/sid`)
             .then(res => res.ok ? res.json() : Promise.reject())
-            .then(data => sidInput.value = data.sid ?? '')
+            .then(data => {
+                sidInput.value = data.sid ?? '';
+            })
             .catch(() => {
                 sidInput.value = '';
                 alert('Gagal mengambil SID.');
@@ -332,7 +339,61 @@
         warning.classList.add('hidden');
     }
 
+    function hitungDurasiGSM() {
+        const open = document.getElementById('open_tiket').value;
+        const linkUpGSM = document.getElementById('link_upGSM').value;
+        const durasiGsmInput = document.getElementById('durasi_gsm');
+
+        if (!linkUpGSM || !open) {
+            durasiGsmInput.value = '';
+            return;
+        }
+
+        const t1 = new Date(open);
+        const t2 = new Date(linkUpGSM);
+        let durasi = (t2 - t1) / 60000;
+
+        if (isNaN(durasi) || durasi < 0) {
+            durasiGsmInput.value = '0 menit';
+            return;
+        }
+
+        let stopclock = 0;
+        document.querySelectorAll('.stopclock-row').forEach(row => {
+            const s = new Date(row.querySelector('.start').value);
+            const e = new Date(row.querySelector('.end').value);
+            const d = (e - s) / 60000;
+            if (!isNaN(d) && d > 0) stopclock += d;
+        });
+
+        durasi -= stopclock;
+        if (durasi < 0) durasi = 0;
+
+        const hari = Math.floor(durasi / 1440);
+        durasi %= 1440;
+        const jam = Math.floor(durasi / 60);
+        const menit = Math.floor(durasi % 60);
+
+        let durasiDisplay = '';
+        if (hari > 0) {
+            durasiDisplay += hari + ' hari ';
+        }
+        if (jam > 0) {
+            durasiDisplay += jam + ' jam ';
+        }
+        if (menit > 0 || (!hari && !jam && menit === 0)) {
+            durasiDisplay += menit + ' menit';
+        }
+
+        durasiGsmInput.value = durasiDisplay.trim();
+    }
+
     document.getElementById('open_tiket')?.addEventListener('change', hitungDurasi);
     document.getElementById('link_up')?.addEventListener('change', hitungDurasi);
+    document.getElementById('open_tiket')?.addEventListener('change', hitungDurasiGSM);
+    document.getElementById('link_upGSM')?.addEventListener('change', hitungDurasiGSM);
+    // Jika stopclock berubah, panggil juga
+    document.getElementById('link_upGSM')?.addEventListener('change', hitungDurasiGSM);
+    document.getElementById('link_up')?.addEventListener('change', hitungDurasiGSM);
 </script>
 @endsection

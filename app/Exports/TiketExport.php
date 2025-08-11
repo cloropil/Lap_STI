@@ -23,16 +23,39 @@ class TiketExport implements FromCollection, WithHeadings, WithStyles, WithMappi
 
     public function map($tiket): array
     {
+        // Hitung total durasi stopclock dalam menit
+        $totalStopclockMenit = 0;
+        if (isset($tiket->stopclocks) && is_iterable($tiket->stopclocks)) {
+            $totalStopclockMenit = collect($tiket->stopclocks)->sum('durasi');
+        } elseif (is_numeric($tiket->stopclock)) {
+            $totalStopclockMenit = $tiket->stopclock;
+        }
+
+        // Format status koneksi
+        $statusKoneksi = '-';
+        if (strtolower($tiket->status_koneksi) === 'up') {
+            $statusKoneksi = 'Link Up FO';
+        } elseif (strtolower($tiket->status_koneksi) === 'gsm') {
+            $statusKoneksi = 'Link Up GSM';
+        } elseif (strtolower($tiket->status_koneksi) === 'down') {
+            $statusKoneksi = 'Down';
+        } else {
+            $statusKoneksi = $tiket->status_koneksi ?? '-';
+        }
+
         return [
             $tiket->no_tiket,
             $tiket->lokasi->lokasi ?? '-',
             $tiket->jenis_gangguan ?? '-',
-            isset($tiket->lokasi->sid) ? ' ' . $tiket->lokasi->sid : '-', // Tambahkan spasi di depan SID
+            isset($tiket->lokasi->sid) ? ' ' . $tiket->lokasi->sid : '-',
             $tiket->open_tiket_formatted,
-            $tiket->link_up_formatted,
             $tiket->link_upGSM_formatted,
+            $tiket->link_up_formatted,
             $tiket->formatted_durasi,
-            $tiket->stopclock ?? '-',
+            $totalStopclockMenit . ' menit', // Stopclock dalam menit
+            $statusKoneksi,                  // Status koneksi sesuai permintaan
+            $tiket->penyebab ?? '-',
+            $tiket->action ?? '-',
             $tiket->status_tiket,
             count($tiket->action_images_array),
         ];
@@ -54,22 +77,41 @@ class TiketExport implements FromCollection, WithHeadings, WithStyles, WithMappi
             $query->whereDate('created_at', $this->tanggal);
         }
         
-        return $query->get();
+        $tikets = $query->get();
+
+        // Tambahkan pemrosesan status_koneksi_formatted
+        foreach ($tikets as $tiket) {
+            $status = strtolower($tiket->status_koneksi ?? '');
+            if ($status === 'Up') {
+                $tiket->status_koneksi_formatted = 'Link Up FO';
+            } elseif ($status === 'Down') {
+                $tiket->status_koneksi_formatted = 'Down';
+            } elseif ($status === 'GSM') {
+                $tiket->status_koneksi_formatted = 'Link Up GSM';
+            } else {
+                $tiket->status_koneksi_formatted = $tiket->status_koneksi ?? '-';
+            }
+        }
+
+        return $tikets;
     }
 
     public function headings(): array
     {
         return [
             'No Tiket',
-            'Lokasi',
-            'Gangguan',
+            'Layanan',
+            'Jenis Layanan',
             'SID',
             'Open',
-            'Link Up FO',
             'Link Up GSM',
+            'Link Up FO',
             'Durasi',
             'Stopclock',
-            'Status',
+            'Status Koneksi',
+            'Penyebab', // Tambahkan di sini
+            'Action',   // Tambahkan di sini
+            'Status Tiket',
             'Jumlah Gambar',
         ];
     }
@@ -90,7 +132,7 @@ class TiketExport implements FromCollection, WithHeadings, WithStyles, WithMappi
             ]);
 
         // Memberi style pada baris judul (baris 1)
-        $sheet->getStyle('A1:K1')->applyFromArray([
+        $sheet->getStyle('A1:N1')->applyFromArray([
             'font' => [
                 'bold' => true,
                 'color' => ['argb' => 'FFFFFFFF'], // Warna putih

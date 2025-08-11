@@ -51,9 +51,9 @@
                     <th class="border border-gray-400 px-3 py-2 w-12">#</th>
                     <th class="border border-gray-400 px-3 py-2">Nama Lokasi</th>
                     <th class="border border-gray-400 px-3 py-2">SID</th>
-                    <th class="border border-gray-400 px-3 py-2">Produk</th>
+                    <th class="border border-gray-400 px-3 py-2">Kategori Layanan</th>
                     <th class="border border-gray-400 px-3 py-2">Bandwith</th>
-                    <th class="border border-gray-400 px-3 py-2">Kategori</th>
+                    <th class="border border-gray-400 px-3 py-2">Produk</th>
                     <th class="border border-gray-400 px-3 py-2">Std Avail (%)</th>
                     <th class="border border-gray-400 px-3 py-2">Realisasi (%)</th>
                     <th class="border border-gray-400 px-3 py-2 w-36">Aksi</th>

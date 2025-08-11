@@ -35,6 +35,7 @@ class InputTiket extends Model
         'stopclock',
         'link_up',
         'link_upGSM', // Tambahkan 'link_upGSM'
+        'durasi_GSM', // Tambahkan 'durasi_GSM'
         'durasi',
         'penyebab',
         'action',

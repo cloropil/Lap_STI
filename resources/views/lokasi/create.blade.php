@@ -59,10 +59,12 @@
                 <select name="kategori_layanan" id="kategori_layanan"
                     class="w-full border border-gray-300 rounded-md text-base px-2 py-1.5">
                     <option value="">-- Pilih --</option>
-                    <option value="Dedicated" {{ old('kategori_layanan') == 'Dedicated' ? 'selected' : '' }}>Dedicated</option>
-                    <option value="Broadband" {{ old('kategori_layanan') == 'Broadband' ? 'selected' : '' }}>Broadband</option>
-                    <option value="VPN" {{ old('kategori_layanan') == 'VPN' ? 'selected' : '' }}>VPN</option>
-                    <option value="IP Transit" {{ old('kategori_layanan') == 'IP Transit' ? 'selected' : '' }}>IP Transit</option>
+                    <option value="INTERNET" {{ old('kategori_layanan') == 'INTERNET' ? 'selected' : '' }}>INTERNET</option>
+                    <option value="INTERNET" {{ old('kategori_layanan') == 'INTERNET' ? 'selected' : '' }}>IPVPN</option>
+                    <option value="IPVSAT" {{ old('kategori_layanan') == 'IPVSAT' ? 'selected' : '' }}>IPVSAT</option>
+                    <option value="CLEAR CHANNEL" {{ old('kategori_layanan') == 'CLEARCHANNEL' ? 'selected' : '' }}>CLEAR CHANNEL</option>
+                    <option value="METRONET" {{ old('kategori_layanan') == 'METRONET' ? 'selected' : '' }}>METRONET</option>
+
                 </select>
             </div>
 

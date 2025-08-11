@@ -18,12 +18,7 @@
             {{-- KIRI --}}
             <div class="space-y-5">
                 <div>
-                    <label class="block text-sm text-gray-500 font-medium mb-1">No Tiket</label>
-                    <input type="text" name="no_tiket" value="{{ $tiket->no_tiket }}" readonly class="w-full bg-gray-100 border border-gray-300 rounded-md text-sm">
-                </div>
-
-                <div>
-                    <label class="block text-sm text-gray-500 font-medium mb-1">Lokasi</label>
+                    <label class="block text-sm text-gray-500 font-medium mb-1">Layanan</label>
                     <select name="lokasi_id" class="w-full border @error('lokasi_id') border-red-500 @else border-gray-300 @enderror rounded-md text-sm">
                         @foreach ($lokasis as $lokasi)
                             <option value="{{ $lokasi->id }}" {{ old('lokasi_id', $tiket->lokasi_id) == $lokasi->id ? 'selected' : '' }}>
@@ -37,9 +32,24 @@
                 </div>
 
                 <div>
+                    <label class="block text-sm text-gray-500 font-medium mb-1">SID</label>
+                    <input type="text" name="sid" id="sid" value="{{ old('sid', $tiket->lokasi->sid ?? '') }}" readonly class="w-full bg-gray-100 border border-gray-300 rounded-md text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-sm text-gray-500 font-medium mb-1">No Tiket</label>
+                    <input type="text" name="no_tiket" value="{{ $tiket->no_tiket }}" readonly class="w-full bg-gray-100 border border-gray-300 rounded-md text-sm">
+                </div>
+
+                <div>
                     <label class="block text-sm text-gray-500 font-medium mb-1">Open Tiket</label>
                     {{-- 💡 MODIFIKASI: Tambahkan `readonly` dan ubah kelas CSS untuk tampilan yang berbeda --}}
                     <input type="datetime-local" name="open_tiket" id="open_tiket" value="{{ old('open_tiket', date('Y-m-d\TH:i', strtotime($tiket->open_tiket))) }}" readonly class="w-full bg-gray-100 border border-gray-300 rounded-md text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-sm text-gray-500 font-medium mb-1">Link Up GSM</label>
+                    <input type="datetime-local" name="link_upGSM" id="link_upGSM" value="{{ old('link_upGSM', $tiket->link_upGSM ? date('Y-m-d\TH:i', strtotime($tiket->link_upGSM)) : '') }}" class="w-full border border-gray-300 rounded-md text-sm">
                 </div>
 
                 <div>
@@ -47,11 +57,6 @@
                     <input type="datetime-local" name="link_up" id="link_up" value="{{ old('link_up', $tiket->link_up ? date('Y-m-d\TH:i', strtotime($tiket->link_up)) : '') }}" class="w-full border border-gray-300 rounded-md text-sm">
                 </div>
                 
-                <div>
-                    <label class="block text-sm text-gray-500 font-medium mb-1">Link Up GSM</label>
-                    <input type="datetime-local" name="link_upGSM" id="link_upGSM" value="{{ old('link_upGSM', $tiket->link_upGSM ? date('Y-m-d\TH:i', strtotime($tiket->link_upGSM)) : '') }}" class="w-full border border-gray-300 rounded-md text-sm">
-                </div>
-
                 <div>
                     <label class="block text-sm text-gray-500 font-medium mb-1">Durasi</label>
                     <input type="text" name="durasi" id="durasi" value="{{ $tiket->durasi }}" readonly class="w-full bg-gray-100 border border-gray-300 rounded-md text-sm">
@@ -109,8 +114,9 @@
                 <div>
                     <label class="block text-sm text-gray-500 font-medium mb-1">Jenis Gangguan</label>
                     <select name="jenis_gangguan" class="w-full border border-gray-300 rounded-md text-sm" required>
+                        <option value="WAN Office" {{ old('jenis_gangguan', $tiket->jenis_gangguan) == 'WAN Office' ? 'selected' : '' }}>WAN Office</option>
                         <option value="SCADA" {{ old('jenis_gangguan', $tiket->jenis_gangguan) == 'SCADA' ? 'selected' : '' }}>Jaringan SCADA</option>
-                        <option value="WAN" {{ old('jenis_gangguan', $tiket->jenis_gangguan) == 'WAN' ? 'selected' : '' }}>WAN Office</option>
+                        <option value="Keluhan" {{ old('jenis_gangguan', $tiket->jenis_gangguan) == 'Keluhan' ? 'selected' : '' }}>Keluhan</option>
                     </select>
                 </div>
 
@@ -119,8 +125,8 @@
                     <div class="flex items-center gap-3">
                         <select name="status_koneksi" id="status_koneksi" class="w-full border border-gray-300 rounded-md text-sm" required>
                             <option value="">-- Pilih Status Koneksi --</option>
-                            <option value="Up" {{ old('status_koneksi', $tiket->status_koneksi) == 'Up' ? 'selected' : '' }}>Up</option>
-                            <option value="GSM" {{ old('status_koneksi', $tiket->status_koneksi) == 'GSM' ? 'selected' : '' }}>GSM</option>
+                            <option value="Up" {{ old('status_koneksi', $tiket->status_koneksi) == 'Up' ? 'selected' : '' }}>Link Up FO</option>
+                            <option value="GSM" {{ old('status_koneksi', $tiket->status_koneksi) == 'GSM' ? 'selected' : '' }}>Link Up GSM</option>
                             <option value="Down" {{ old('status_koneksi', $tiket->status_koneksi) == 'Down' ? 'selected' : '' }}>Down</option>
                         </select>
                         <span id="status_indicator" class="w-3 h-3 rounded-full bg-gray-300 border border-gray-400"></span>
@@ -204,25 +210,34 @@
         const statusTiketHiddenInput = document.getElementById('status_tiket');
         const statusMessageDiv = document.getElementById('status_tiket_message');
         const pesanStatusDiv = document.getElementById('pesan_status');
+        const statusKoneksiSelect = document.getElementById('status_koneksi');
 
         if (linkUpFoInput.value) {
-            // Jika Link Up FO diisi, status tiket otomatis 'Selesai'
             statusTiketHiddenInput.value = 'Selesai';
             statusMessageDiv.innerHTML = '<span class="text-green-800 bg-green-50">Status tiket otomatis <b class="font-semibold">Selesai</b> karena Link Up FO sudah diisi.</span>';
             statusMessageDiv.className = 'p-3 text-sm rounded border border-green-200 bg-green-50';
-            pesanStatusDiv.classList.add('hidden'); // Sembunyikan pesan GSM
+            pesanStatusDiv.classList.add('hidden');
+
+            if (statusKoneksiSelect.value !== 'Up') {
+                statusKoneksiSelect.value = 'Up';
+                updateStatusIndicator();
+            }
         } else if (linkUpGsmInput.value) {
-            // Jika Link Up GSM diisi (tapi FO kosong), status tiket tetap 'Proses' dan tampilkan pesan khusus
             statusTiketHiddenInput.value = 'Proses';
             statusMessageDiv.innerHTML = '<span class="text-yellow-800 bg-yellow-50">Status tiket <b class="font-semibold">Proses</b> (backup GSM aktif).</span>';
             statusMessageDiv.className = 'p-3 text-sm rounded border border-yellow-200 bg-yellow-50';
-            pesanStatusDiv.classList.remove('hidden'); // Tampilkan pesan GSM
+            pesanStatusDiv.classList.remove('hidden');
+
+            // 💡 Tambahkan logika ini:
+            if (statusKoneksiSelect.value !== 'GSM') {
+                statusKoneksiSelect.value = 'GSM';
+                updateStatusIndicator();
+            }
         } else {
-            // Jika kedua Link Up kosong, status tiket 'Proses'
             statusTiketHiddenInput.value = 'Proses';
             statusMessageDiv.innerHTML = '<span class="text-red-800 bg-red-50">Status tiket <b class="font-semibold">Proses</b>. Belum ada Link Up.</span>';
             statusMessageDiv.className = 'p-3 text-sm rounded border border-red-200 bg-red-50';
-            pesanStatusDiv.classList.add('hidden'); // Sembunyikan pesan GSM
+            pesanStatusDiv.classList.add('hidden');
         }
     }
 
