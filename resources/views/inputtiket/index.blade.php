@@ -110,7 +110,13 @@
                                     Hapus
                                 </button>
                             @else
-                                <a href="{{ route('inputtiket.edit', $tiket->id) }}" class="text-orange-600 hover:underline text-sm">Update</a>
+                                @if ($tiket->status_tiket === 'Selesai')
+                                    <button type="button" class="text-gray-400 cursor-not-allowed text-sm bg-transparent border-0" disabled>
+                                        Update
+                                    </button>
+                                @else
+                                    <a href="{{ route('inputtiket.edit', $tiket->id) }}" class="text-orange-600 hover:underline text-sm">Update</a>
+                                @endif
                                 <form action="{{ route('inputtiket.destroy', $tiket->id) }}" method="POST" class="inline" data-form-id="{{ $tiket->id }}">
                                     @csrf
                                     @method('DELETE')
