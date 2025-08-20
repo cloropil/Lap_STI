@@ -84,4 +84,25 @@ class InputTiketController extends Controller
         // Pastikan kelas TiketExport sudah dibuat sesuai instruksi sebelumnya
         return Excel::download(new TiketExport($search, $tanggal), 'data-tiket-gangguan.xlsx');
     }
+    
+    public function info($id)
+    {
+        $lokasi = Lokasi::find($id);
+        if (!$lokasi) {
+            return response()->json(['error' => 'Lokasi tidak ditemukan'], 404);
+        }
+        return response()->json([
+            'sid' => $lokasi->sid,
+            'jenis_gangguan' => $lokasi->product,
+        ]);
+    }
+
+    public function kategoriLayanan($id)
+    {
+        $lokasi = Lokasi::find($id);
+        if (!$lokasi) {
+            return response()->json(['error' => 'Lokasi tidak ditemukan'], 404);
+        }
+        return response()->json(['kategori_layanan' => $lokasi->product]);
+    }
 }

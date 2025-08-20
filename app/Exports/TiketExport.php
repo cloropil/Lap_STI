@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\InputTiket;
+use App\Models\Lokasi;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
@@ -46,14 +47,16 @@ class TiketExport implements FromCollection, WithHeadings, WithStyles, WithMappi
         return [
             $tiket->no_tiket,
             $tiket->lokasi->lokasi ?? '-',
-            $tiket->jenis_gangguan ?? '-',
+            $tiket->lokasi->product ?? '-',      // Jenis Layanan dari relasi lokasi
+            $tiket->jenis_gangguan ?? '-',       // Jenis Gangguan (jika ada di InputTiket)
             isset($tiket->lokasi->sid) ? ' ' . $tiket->lokasi->sid : '-',
             $tiket->open_tiket_formatted,
             $tiket->link_upGSM_formatted,
             $tiket->link_up_formatted,
+            $tiket->durasi_GSM,
             $tiket->formatted_durasi,
-            $totalStopclockMenit . ' menit', // Stopclock dalam menit
-            $statusKoneksi,                  // Status koneksi sesuai permintaan
+            $totalStopclockMenit . ' menit',
+            $statusKoneksi,
             $tiket->penyebab ?? '-',
             $tiket->action ?? '-',
             $tiket->status_tiket,
@@ -102,11 +105,13 @@ class TiketExport implements FromCollection, WithHeadings, WithStyles, WithMappi
             'No Tiket',
             'Layanan',
             'Jenis Layanan',
+            'Jenis Gangguan',
             'SID',
             'Open',
             'Link Up GSM',
             'Link Up FO',
-            'Durasi',
+            'Durasi GSM',
+            'Durasi FO',
             'Stopclock',
             'Status Koneksi',
             'Penyebab', // Tambahkan di sini
@@ -132,7 +137,7 @@ class TiketExport implements FromCollection, WithHeadings, WithStyles, WithMappi
             ]);
 
         // Memberi style pada baris judul (baris 1)
-        $sheet->getStyle('A1:N1')->applyFromArray([
+        $sheet->getStyle('A1:P1')->applyFromArray([
             'font' => [
                 'bold' => true,
                 'color' => ['argb' => 'FFFFFFFF'], // Warna putih
@@ -168,5 +173,34 @@ class TiketExport implements FromCollection, WithHeadings, WithStyles, WithMappi
             ->getBorders()
             ->getAllBorders()
             ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+        // Mendapatkan jumlah baris data
+        $highestRow = $sheet->getHighestRow();
+
+        // Kolom Status Koneksi (misal kolom L, urutan ke-12: A=1, L=12)
+        $statusCol = 'L';
+
+        // Loop setiap baris data (mulai dari baris 2)
+        for ($row = 2; $row <= $highestRow; $row++) {
+            $cell = $statusCol . $row;
+            $status = $sheet->getCell($cell)->getValue();
+
+            if ($status === 'Link Up FO') {
+                // Hijau
+                $sheet->getStyle($cell)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                    ->getStartColor()->setARGB('FF22C55E');
+                $sheet->getStyle($cell)->getFont()->getColor()->setARGB('FF000000');
+            } elseif ($status === 'Link Up GSM') {
+                // Kuning
+                $sheet->getStyle($cell)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                    ->getStartColor()->setARGB('FFFACC15');
+                $sheet->getStyle($cell)->getFont()->getColor()->setARGB('FF000000');
+            } elseif ($status === 'Down') {
+                // Merah
+                $sheet->getStyle($cell)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                    ->getStartColor()->setARGB('FFEF4444');
+                $sheet->getStyle($cell)->getFont()->getColor()->setARGB('FFFFFFFF');
+            }
+        }
     }
 }

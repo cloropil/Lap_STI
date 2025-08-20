@@ -5,7 +5,7 @@
 @section('content')
 <div class="max-w-2xl mx-auto bg-white shadow-md rounded-lg overflow-hidden">
     <div class="bg-blue-500 px-6 py-4 text-white text-lg font-semibold flex items-center">
-        Tambah Lokasi Baru
+        Tambah Layanan Baru
     </div>
 
     <div class="px-6 py-6">
@@ -43,9 +43,13 @@
             </div>
 
             <div>
-                <label for="product" class="block text-base font-medium text-gray-600 mb-1">Produk</label>
-                <input type="text" name="product" id="product" value="{{ old('product') }}"
-                    class="w-full border border-gray-300 rounded-md text-base px-2 py-1.5">
+                <label for="product" class="block text-base font-medium text-gray-600 mb-1">Kategori Layanan</label>
+                <select name="product" id="product"
+                    class="w-full border border-gray-300 rounded-md text-base px-2 py-1.5" required>
+                    <option value="">-- Pilih --</option>
+                    <option value="SCADA" {{ old('product') == 'SCADA' ? 'selected' : '' }}>SCADA</option>
+                    <option value="WAN Office" {{ old('product') == 'WAN Office' ? 'selected' : '' }}>WAN Office</option>
+                </select>
             </div>
 
             <div>
@@ -55,7 +59,7 @@
             </div>
 
             <div>
-                <label for="kategori_layanan" class="block text-base font-medium text-gray-600 mb-1">Kategori Layanan</label>
+                <label for="kategori_layanan" class="block text-base font-medium text-gray-600 mb-1">Produk</label>
                 <select name="kategori_layanan" id="kategori_layanan"
                     class="w-full border border-gray-300 rounded-md text-base px-2 py-1.5">
                     <option value="">-- Pilih --</option>

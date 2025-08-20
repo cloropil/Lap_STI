@@ -57,10 +57,10 @@
                     <input type="datetime-local" name="link_up" id="link_up" value="{{ old('link_up', $tiket->link_up ? date('Y-m-d\TH:i', strtotime($tiket->link_up)) : '') }}" class="w-full border border-gray-300 rounded-md text-sm">
                 </div>
                 
-                <div>
+                <!-- <div>
                     <label class="block text-sm text-gray-500 font-medium mb-1">Durasi</label>
                     <input type="text" name="durasi" id="durasi" value="{{ $tiket->durasi }}" readonly class="w-full bg-gray-100 border border-gray-300 rounded-md text-sm">
-                </div>
+                </div> -->
 
                 <div>
                     <label class="block text-sm text-gray-500 font-medium mb-1">Ganti / Tambah Gambar</label>
@@ -111,13 +111,18 @@
                         class="w-full border @error('action') border-red-500 @else border-gray-300 @enderror rounded-md text-sm">{{ old('action', $tiket->action) }}</textarea>
                 </div>
 
-                <div>
-                    <label class="block text-sm text-gray-500 font-medium mb-1">Jenis Gangguan</label>
-                    <select name="jenis_gangguan" class="w-full border border-gray-300 rounded-md text-sm" required>
-                        <option value="WAN Office" {{ old('jenis_gangguan', $tiket->jenis_gangguan) == 'WAN Office' ? 'selected' : '' }}>WAN Office</option>
-                        <option value="SCADA" {{ old('jenis_gangguan', $tiket->jenis_gangguan) == 'SCADA' ? 'selected' : '' }}>Jaringan SCADA</option>
-                        <option value="Keluhan" {{ old('jenis_gangguan', $tiket->jenis_gangguan) == 'Keluhan' ? 'selected' : '' }}>Keluhan</option>
-                    </select>
+                <div class="flex items-center gap-3">
+                    <div class="flex-1 flex flex-col">
+                        <label class="block text-sm text-gray-500 font-medium mb-1">Jenis Gangguan</label>
+                        <input type="text" name="jenis_gangguan" id="jenis_gangguan"
+                            value="{{ old('jenis_gangguan', $tiket->jenis_gangguan) }}"
+                            readonly
+                            class="w-full bg-gray-100 border border-gray-300 rounded-md text-sm h-10">
+                    </div>
+                    <div class="flex items-center h-10">
+                        <input type="checkbox" id="keluhan_checkbox" class="ml-2 h-4 w-4">
+                        <label for="keluhan_checkbox" class="text-sm text-gray-600 ml-1">Keluhan</label>
+                    </div>
                 </div>
 
                 <div>
@@ -401,6 +406,20 @@
                 indicator.className = 'w-3 h-3 rounded-full bg-gray-300 border border-gray-400';
         }
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const jenisGangguanInput = document.getElementById('jenis_gangguan');
+        const keluhanCheckbox = document.getElementById('keluhan_checkbox');
+        const jenisGangguanAwal = jenisGangguanInput.value;
+
+        keluhanCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                jenisGangguanInput.value = 'Keluhan';
+            } else {
+                jenisGangguanInput.value = jenisGangguanAwal;
+            }
+        });
+    });
 </script>
 
 @endsection

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\LokasiService;
+use App\Models\Lokasi; // <-- tambahkan use statement untuk model Lokasi
 
 class LokasiController extends Controller
 {
@@ -72,5 +73,17 @@ class LokasiController extends Controller
     {
         $this->lokasiService->delete($id);
         return redirect()->route('lokasi.index')->with('success', 'Lokasi berhasil dihapus.');
+    }
+
+    public function info($id)
+    {
+        $lokasi = Lokasi::find($id);
+        if (!$lokasi) {
+            return response()->json([], 404);
+        }
+        return response()->json([
+            'sid' => $lokasi->sid,
+            'jenis_gangguan' => $lokasi->product, // <-- ambil dari field product
+        ]);
     }
 }

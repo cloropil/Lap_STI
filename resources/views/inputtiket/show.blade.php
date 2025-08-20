@@ -7,50 +7,68 @@
     <div class="bg-blue-500 px-6 py-4 text-white text-lg font-semibold flex items-center">
         📄 Detail Tiket: {{ $tiket->no_tiket }}
     </div>
-
+    
     <div class="p-6 space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6">
             <div>
-                <p class="text-gray-500 font-medium">Lokasi</p>
-                <p>{{ $tiket->lokasi->lokasi ?? '-' }}</p>
+                <p class="text-gray-500 font-medium">No Tiket</p>
+                <p>{{ $tiket->no_tiket }}</p>
             </div>
             <div>
                 <p class="text-gray-500 font-medium">Open Tiket</p>
                 <p>{{ $tiket->open_tiket ? \Carbon\Carbon::parse($tiket->open_tiket)->format('d M Y H:i') : '-' }}</p>
             </div>
             <div>
-                <p class="text-gray-500 font-medium">SID</p>
-                <p>{{ $tiket->lokasi->sid ?? '-' }}</p>
-            </div>
-            <div>
-                <p class="text-gray-500 font-medium">Stopclock</p>
-                <p>{{ $tiket->stopclocks->count() > 0 ? $tiket->stopclocks->count() . 'x stopclock' : '-' }}</p>
+                <p class="text-gray-500 font-medium">Layanan</p>
+                <p>{{ $tiket->lokasi->lokasi ?? '-' }}</p>
             </div>
             <div>
                 <p class="text-gray-500 font-medium">Link Up GSM</p>
                 <p>{{ $tiket->link_upGSM ? \Carbon\Carbon::parse($tiket->link_upGSM)->format('d M Y H:i') : '-' }}</p>
             </div>
             <div>
-                <p class="text-gray-500 font-medium">Jenis Gangguan</p>
-                <p>{{ $tiket->jenis_gangguan ?? '-' }}</p>
+                <p class="text-gray-500 font-medium">SID</p>
+                <p>{{ $tiket->lokasi->sid ?? '-' }}</p>
             </div>
             <div>
                 <p class="text-gray-500 font-medium">Link Up FO</p>
                 <p>{{ $tiket->link_up ? \Carbon\Carbon::parse($tiket->link_up)->format('d M Y H:i') : '-' }}</p>
             </div>
-
+            <div>
+                <p class="text-gray-500 font-medium">Jenis Layanan</p>
+                <p>{{ $tiket->lokasi->product ?? '-' }}</p>
+            </div>
+            <div>
+                <p class="text-gray-500 font-medium">Durasi GSM</p>
+                <p>{{ $tiket->durasi_GSM ?? '-' }}</p>
+            </div>
+            <div>
+                <p class="text-gray-500 font-medium">Produk</p>
+                <p>{{ $tiket->lokasi->kategori_layanan ?? '-' }}</p>
+            </div>
+            <div>
+                <p class="text-gray-500 font-medium">Durasi FO</p>
+                <p>{{ $tiket->durasi ?? '-' }}</p>
+            </div>
+            <div>
+                <p class="text-gray-500 font-medium">Bandwidth</p>
+                <p>{{ $tiket->lokasi->bandwith ?? '-' }}</p>
+            </div>
             <div>
                 <p class="text-gray-500 font-medium">Penyebab</p>
                 <p>{{ $tiket->penyebab }}</p>
             </div>
             <div>
-                <p class="text-gray-500 font-medium">Durasi</p>
-                <p>{{ $tiket->durasi }}</p>
+                <p class="text-gray-500 font-medium">Jenis Gangguan</p>
+                <p>{{ $tiket->jenis_gangguan ?? '-' }}</p>
             </div>
-
             <div>
                 <p class="text-gray-500 font-medium">Action</p>
                 <p>{{ $tiket->action }}</p>
+            </div>
+            <div>
+                <p class="text-gray-500 font-medium">Stopclock</p>
+                <p>{{ $tiket->stopclocks->count() > 0 ? $tiket->stopclocks->count() . 'x stopclock' : '-' }}</p>
             </div>
             <div>
                 <p class="text-gray-500 font-medium">Status Koneksi</p>
@@ -62,10 +80,35 @@
                         @elseif ($tiket->status_koneksi === 'Down') bg-red-500
                         @else bg-gray-300 @endif">
                     </span>
-                    <span>{{ $tiket->status_koneksi ?? '-' }}</span>
+                    <span>
+                        @if($tiket->status_koneksi === 'Up')
+                            Link Up FO
+                        @elseif($tiket->status_koneksi === 'GSM')
+                            Link Up GSM
+                        @elseif($tiket->status_koneksi === 'Down')
+                            Down
+                        @else
+                            {{ $tiket->status_koneksi ?? '-' }}
+                        @endif
+                    </span>
                 </div>
             </div>
-
+            <div>
+                <p class="text-gray-500 font-medium">Jumlah Gambar</p>
+                <p>{{ count($tiket->action_images_array ?? []) }}</p>
+            </div>
+            <div>
+                <p class="text-gray-500 font-medium">Status Tiket</p>
+                <p>
+                    @if($tiket->status_tiket == 'Proses')
+                        <span class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-1 rounded-full">Open</span>
+                    @elseif($tiket->status_tiket == 'Selesai')
+                        <span class="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">Closed</span>
+                    @else
+                        <span class="bg-gray-200 text-gray-800 text-xs font-semibold px-2 py-1 rounded-full">{{ $tiket->status_tiket }}</span>
+                    @endif
+                </p>
+            </div>
             <div class="md:col-span-2">
                 <p class="text-gray-500 font-medium">Gambar Pendukung</p>
                 @if ($tiket->action_images)
@@ -83,18 +126,11 @@
                     <p class="text-gray-400 italic">Tidak ada gambar</p>
                 @endif
             </div>
-
-            <div>
-                <p class="text-gray-500 font-medium">Status Tiket</p>
-                <p>{{ $tiket->status_tiket }}</p>
-            </div>
-            
         </div>
 
         {{-- Rincian Stopclock --}}
         <div class="pt-6">
             <h2 class="text-md font-semibold mb-3">🕒 Rincian Stopclock</h2>
-
             @if ($tiket->stopclocks && $tiket->stopclocks->count() > 0)
                 @php $totalMenit = 0; @endphp
                 <div class="overflow-x-auto">

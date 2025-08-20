@@ -55,7 +55,7 @@
                 <div class="mb-10">
                     <h2 class="text-xl font-semibold text-gray-700 mb-1">🧯 Jenis Gangguan</h2>
                     <p class="text-sm text-gray-500 mb-4">Distribusi tiket berdasarkan jenis gangguan.</p>
-                    <div class="w-full h-[300px] max-w-md mx-auto"><canvas id="chartGangguan"></canvas></div>
+                    <div class="w-full h-[350px] max-w-md mx-auto"><canvas id="chartGangguan"></canvas></div>
                 </div>
 
                 <div class="mb-10">
@@ -225,12 +225,29 @@
         if (ctxGangguan) {
             const labels = {!! json_encode($gangguanData->pluck('jenis_gangguan')) !!};
             const data = {!! json_encode($gangguanData->pluck('total')) !!};
-            const colors = labels.map(label => label === 'WAN' ? '#ef4444' : label === 'SCADA' ? '#f97316' : '#60a5fa');
+            const colors = labels.map(label => label === 'SCADA' ? '#f97316' : '#60a5fa');
 
             new Chart(ctxGangguan, {
                 type: 'pie',
                 data: { labels, datasets: [{ data, backgroundColor: colors }] },
-                options: { responsive: true }
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'right', // posisi label di kanan
+                            labels: {
+                                boxWidth: 18,
+                                padding: 16,
+                                font: {
+                                    size: 14,
+                                    family: "'Inter', 'Arial', sans-serif"
+                                },
+                                color: '#374151'
+                            }
+                        }
+                    }
+                }
             });
         }
 

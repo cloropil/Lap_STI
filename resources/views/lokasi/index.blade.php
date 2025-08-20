@@ -32,13 +32,13 @@
         @if(in_array($user->role, ['superadmin', 'admin']))
             <a href="{{ route('lokasi.create') }}"
                class="bg-sky-700 hover:bg-sky-400 text-white text-sm font-medium px-4 py-2 rounded-md shadow inline-flex items-center gap-2 transition-all duration-200 ease-in-out">
-                Input Lokasi
+                Input Layanan
             </a>
         @elseif($user->role === 'staff')
             <a href="#"
                onclick="showAccessModal(event, 'menambah lokasi')"
                class="bg-sky-700 hover:bg-sky-400 text-white text-sm font-medium px-4 py-2 rounded-md shadow inline-flex items-center gap-2 transition-all duration-200 ease-in-out">
-                Input Lokasi
+                Input Layanan
             </a>
         @endif
     </div>

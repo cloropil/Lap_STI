@@ -41,8 +41,9 @@ Route::get('/dashboard/laporan-kegiatan/partial', [LaporanKegiatanController::cl
         Route::get('/{id}/edit', [LokasiController::class, 'edit'])->name('edit');
         Route::put('/{id}', [LokasiController::class, 'update'])->name('update');
         Route::delete('/{id}', [LokasiController::class, 'destroy'])->name('destroy');
+        Route::get('/{id}/info', [InputTiketController::class, 'info'])->name('info');
 
-        // Ambil SID dari ID lokasi (API JSON)
+        // Route SID (hanya SID)
         Route::get('/{id}/sid', function ($id) {
             $lokasi = Lokasi::find($id);
             if ($lokasi && isset($lokasi->sid)) {

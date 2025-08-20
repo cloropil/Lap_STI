@@ -61,13 +61,13 @@
                         <input type="datetime-local" id="link_up" name="link_up" value="{{ old('link_up') }}" class="w-full border border-gray-300 rounded-md text-sm">
                     </div>
 
-                    <div>
+                    <!-- <div>
                         <label for="durasi" class="block text-sm text-gray-500 font-medium mb-1">Durasi</label>
                         <input type="text" id="durasi" name="durasi" readonly value="{{ old('durasi') }}" class="w-full bg-gray-100 border border-gray-300 rounded-md text-sm">
                         <div id="durasi_warning" class="text-sm text-red-600 mt-1 hidden">
                             Durasi menjadi 0 menit. Periksa kembali stopclock Anda!
                         </div>
-                    </div>
+                    </div> -->
 
                     <div>
                         <h3 class="text-sm font-semibold text-gray-600 mb-2">⏱️ Rincian Stopclock</h3>
@@ -94,12 +94,9 @@
 
                     <div>
                         <label for="jenis_gangguan" class="block text-sm text-gray-500 font-medium mb-1">Jenis Gangguan</label>
-                        <select name="jenis_gangguan" id="jenis_gangguan" required class="w-full border border-gray-300 rounded-md text-sm">
-                            <option value="">-- Pilih Jenis Gangguan --</option>
-                            <option value="WAN Office" @selected(old('jenis_gangguan') == 'WAN Office')>WAN Office</option>
-                            <option value="SCADA" @selected(old('jenis_gangguan') == 'SCADA')>Jaringan SCADA</option>
-                            <option value="Keluhan" @selected(old('jenis_gangguan') == 'Keluhan')>Keluhan</option>
-                        </select>
+                        <input type="text" name="jenis_gangguan" id="jenis_gangguan" readonly required
+                            value="{{ old('jenis_gangguan') }}"
+                            class="w-full bg-gray-100 border border-gray-300 rounded-md text-sm">
                     </div>
 
                     <div>
@@ -170,6 +167,21 @@
         document.getElementById('status_koneksi').value = 'Down';
         updateStatusColor();
         toggleStatusMessage();
+
+        // --- Tambahan: Fetch SID & Jenis Gangguan saat halaman pertama kali dibuka ---
+        const lokasiId = document.getElementById('lokasi_id')?.value;
+        if (lokasiId) {
+            fetch(`/lokasi/${lokasiId}/info`)
+                .then(res => res.ok ? res.json() : Promise.reject())
+                .then(data => {
+                    document.getElementById('sid').value = data.sid ?? '';
+                    document.getElementById('jenis_gangguan').value = data.jenis_gangguan ?? '';
+                })
+                .catch(() => {
+                    document.getElementById('sid').value = '';
+                    document.getElementById('jenis_gangguan').value = '';
+                });
+        }
     });
     linkUpFoInput?.addEventListener('change', toggleStatusMessage);
     linkUpGsmInput?.addEventListener('change', toggleStatusMessage);
@@ -246,15 +258,22 @@
     document.getElementById('lokasi_id')?.addEventListener('change', function () {
         const lokasiId = this.value;
         const sidInput = document.getElementById('sid');
-        if (!lokasiId) return sidInput.value = '';
-        fetch(`/lokasi/${lokasiId}/sid`)
+        const jenisGangguanInput = document.getElementById('jenis_gangguan');
+        if (!lokasiId) {
+            sidInput.value = '';
+            jenisGangguanInput.value = '';
+            return;
+        }
+        fetch(`/lokasi/${lokasiId}/info`)
             .then(res => res.ok ? res.json() : Promise.reject())
             .then(data => {
                 sidInput.value = data.sid ?? '';
+                jenisGangguanInput.value = data.jenis_gangguan ?? '';
             })
             .catch(() => {
                 sidInput.value = '';
-                alert('Gagal mengambil SID.');
+                jenisGangguanInput.value = '';
+                alert('Gagal mengambil data lokasi.');
             });
     });
 
