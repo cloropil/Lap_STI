@@ -366,9 +366,9 @@
 <script>
     function salinSemuaLaporan() {
         // Pisahkan tiket di JavaScript juga untuk memastikan urutan yang benar
-        const scadaTikets = @json($tikets->where('jenis_gangguan', 'SCADA'));
-        const wanTikets = @json($tikets->where('jenis_gangguan', 'WAN Office'));
-        const keluhanTikets = @json($tikets->where('jenis_gangguan', 'Keluhan'));
+        const scadaTikets = @json($tikets->where('jenis_gangguan', 'SCADA')->values()->all());
+        const wanTikets = @json($tikets->where('jenis_gangguan', 'WAN Office')->values()->all());
+        const keluhanTikets = @json($tikets->where('jenis_gangguan', 'Keluhan')->values()->all());
         const kegiatanHarian = @json($kegiatanHarian);
 
         const jumlahTiket = scadaTikets.length + wanTikets.length + keluhanTikets.length;

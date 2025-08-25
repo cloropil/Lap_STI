@@ -225,7 +225,21 @@
         if (ctxGangguan) {
             const labels = {!! json_encode($gangguanData->pluck('jenis_gangguan')) !!};
             const data = {!! json_encode($gangguanData->pluck('total')) !!};
-            const colors = labels.map(label => label === 'SCADA' ? '#f97316' : '#60a5fa');
+            // Tambahkan lebih banyak warna agar tiap jenis gangguan berbeda
+            const colorList = [
+                '#f97316', // orange
+                '#60a5fa', // blue
+                '#22c55e', // green
+                '#eab308', // yellow
+                '#a21caf', // purple
+                '#ef4444', // red
+                '#0ea5e9', // sky
+                '#f472b6', // pink
+                '#64748b', // slate
+                '#f59e42', // amber
+            ];
+            // Pilih warna berdasarkan urutan label
+            const colors = labels.map((_, i) => colorList[i % colorList.length]);
 
             new Chart(ctxGangguan, {
                 type: 'pie',
@@ -235,7 +249,7 @@
                     plugins: {
                         legend: {
                             display: true,
-                            position: 'right', // posisi label di kanan
+                            position: 'right',
                             labels: {
                                 boxWidth: 18,
                                 padding: 16,
