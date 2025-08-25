@@ -114,6 +114,11 @@
             </tbody>
         </table>
     </div>
+
+    {{-- Pagination --}}
+    <div class="mt-8 flex justify-end">
+        {{ $lokasis->links() }}
+    </div>
 </div>
 
 {{-- MODAL KONFIRMASI HAPUS --}}

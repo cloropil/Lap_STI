@@ -69,6 +69,9 @@ class AkunPenggunaService
             $akun->email = $data['email'];
         }
 
+        // Pastikan field role tetap terisi agar validasi tidak error
+        $akun->role = $akun->role;
+
         if (!empty($data['password'])) {
             $akun->password = Hash::make($data['password']);
         }

@@ -21,9 +21,11 @@ class LokasiService
         )->get();
     }
 
-    public function getLastNumber()
+    // Ambil nomor urut berikutnya (otomatis +1 dari terbesar)
+    public function getNextNumber()
     {
-        return Lokasi::max('no');
+        $lastNo = Lokasi::max('no');
+        return $lastNo ? $lastNo + 1 : 1;
     }
 
     public function store(array $data)

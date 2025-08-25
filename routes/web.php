@@ -102,4 +102,5 @@ Route::get('/dashboard/laporan-kegiatan/partial', [LaporanKegiatanController::cl
        // === AKUN PENGGUNA ===
     Route::resource('akun-pengguna', AkunPenggunaController::class)->except(['show'])->names('akun-pengguna');
     Route::get('/akun-pengguna/settings', [AkunPenggunaController::class, 'settings'])->name('akun-pengguna.settings');
+    Route::put('/akun-pengguna/settings', [AkunPenggunaController::class, 'updateSettings'])->name('akun-pengguna.settings.update');
 });

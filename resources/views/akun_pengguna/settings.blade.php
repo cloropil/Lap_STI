@@ -36,9 +36,10 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('akun-pengguna.update', $user->id) }}">
+    <form method="POST" action="{{ route('akun-pengguna.settings.update') }}">
         @csrf
         @method('PUT')
+        <input type="hidden" name="role" value="{{ $user->role }}">
 
         <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700">Nama</label>
@@ -48,12 +49,9 @@
 
         <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700">Email</label>
-            <input type="email" name="email" value="{{ old('email', $user->email) }}"
-                   @if($user->role !== 'superadmin') readonly @endif
-                   class="mt-1 block w-full rounded-md bg-gray-100 border-gray-300 shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm">
-            @if($user->role !== 'superadmin')
-                <p class="text-xs text-gray-500 mt-1">Hanya superadmin yang dapat mengubah email.</p>
-            @endif
+            <input type="email" name="email" value="{{ $user->email }}" 
+                @if($user->role !== 'superadmin') readonly @endif
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
         </div>
 
         <div class="mb-4">
@@ -61,6 +59,12 @@
             <input type="password" name="password"
                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm">
             <p class="text-xs text-gray-500 mt-1">Kosongkan jika tidak ingin mengubah password.</p>
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700">Konfirmasi Password Baru</label>
+            <input type="password" name="password_confirmation"
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm">
         </div>
 
         <div class="flex justify-end">

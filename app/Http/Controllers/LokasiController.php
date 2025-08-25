@@ -17,14 +17,17 @@ class LokasiController extends Controller
 
     public function index()
     {
-        $lokasis = $this->lokasiService->getAll();
+        // Pagination 10 data per halaman
+        $lokasis = \App\Models\Lokasi::orderBy('no')->paginate(10);
         return view('lokasi.index', compact('lokasis'));
     }
 
     public function create()
     {
-        $lastNumber = $this->lokasiService->getLastNumber();
-        $kodeNo = $lastNumber ? ((int)$lastNumber) + 1 : 1;
+        // Ambil nilai terbesar dari kolom 'no', lalu tambah 1
+        $lastNo = \App\Models\Lokasi::max('no');
+        $kodeNo = $lastNo ? $lastNo + 1 : 1;
+
         return view('lokasi.create', compact('kodeNo'));
     }
 

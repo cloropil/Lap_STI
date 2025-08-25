@@ -108,38 +108,38 @@ class AkunPenggunaController extends Controller
         return view('akun_pengguna.settings', compact('user'));
     }
 
-public function updateSettings(Request $request)
-{
-    /** @var AkunPengguna $user */
-    $user = Auth::user();
+    public function updateSettings(Request $request)
+    {
+        $user = Auth::user();
 
-    // Aturan validasi dinamis
-    $rules = [
-        'name' => 'required|string|max:255',
-        'password' => 'nullable|string|min:6|confirmed',
-    ];
+        $rules = [
+            'name' => 'required|string|max:255',
+            'password' => 'nullable|string|min:6|confirmed',
+            'role' => 'required|string',
+        ];
 
-    // Email hanya bisa diubah oleh superadmin
-    if ($user->role === 'superadmin') {
-        $rules['email'] = 'required|email|unique:akun_pengguna,email,' . $user->id;
+        // Email hanya bisa diubah oleh superadmin
+        if ($user->role === 'superadmin') {
+            // Ganti nama tabel ke 'akun_pengguna'
+            $rules['email'] = 'required|email|unique:akun_pengguna,email,' . $user->id;
+        }
+
+        $validated = $request->validate($rules);
+
+        $user->name = $validated['name'];
+        if ($user->role === 'superadmin' && isset($validated['email'])) {
+            $user->email = $validated['email'];
+        }
+        $user->role = $validated['role'];
+
+        if (!empty($validated['password'])) {
+            $user->password = Hash::make($validated['password']);
+        }
+
+        $user->save();
+
+        return redirect()->route('akun-pengguna.settings')->with('success', 'Akun berhasil diperbarui.');
     }
-
-    $validated = $request->validate($rules);
-
-    $user->name = $validated['name'];
-
-    if ($user->role === 'superadmin' && isset($validated['email'])) {
-        $user->email = $validated['email'];
-    }
-
-    if (!empty($validated['password'])) {
-        $user->password = Hash::make($validated['password']);
-    }
-
-    $user->save();
-
-    return redirect()->route('akun-pengguna.settings')->with('success', 'Akun berhasil diperbarui.');
-}
 
     // Form login
     public function showLoginForm()
